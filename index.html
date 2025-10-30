@@ -8,6 +8,29 @@
   <body>
     <input type="file" id="image-input" accept="image/jpeg, image/png">
     <img id="floor-plan" />
+    <div id="space-form" >
+      <!-- A form where users can add relevant data to a given space -->
+       <form id="new-space-form" hidden>
+          <button type="button" id="new-space-close-btn">X</button>
+          <input type="text" placeholder="Name of Space" id="new-space-name">
+          <textarea id="new-space-desc" placeholder="Add any notes here..."></textarea>
+          <!-- Accept multiple image files (can change this if need be) -->
+          <input type="file" accept="image/jpeg, image/png" multiple id="new-space-files">
+          <button id="new-space-save-btn">Save!</button>
+       </form>
+    </div>
+    <div id="space-form">
+         <!-- A form where users can update relevant data to a given space -->
+       <form id="update-space-form" hidden>
+        <button id="update-space-close-btn" type="button">X</button>
+          <input type="text" placeholder="Name of Space" id="update-space-name">
+          <textarea id="update-space-desc" placeholder="Add any notes here..."></textarea>
+          <!-- Accept multiple image files (can change this if need be) -->
+          <input type="file" accept="image/jpeg, image/png" multiple id="update-space-files">
+          <button id="update-space-save-btn" type="button">Save!</button>
+          <button id="update-space-delete-btn" type="button">Delete</button>
+       </form>
+    </div>
     <script type="module" src="./src/main.js"></script>
   </body>
 </html>
