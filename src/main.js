@@ -1,5 +1,7 @@
 import { createImageAnnotator } from '@annotorious/annotorious';
 import '@annotorious/annotorious/annotorious.css';
+import fs from 'fs';
+import JSZip from 'jszip';
 
 // DOM variables
 const imageInput = document.getElementById('image-input')
@@ -7,7 +9,7 @@ const image = document.getElementById('floor-plan')
 const newSpaceForm = document.getElementById('new-space-form');
 const newSpaceFormCloseButton = document.getElementById('new-space-close-btn');
 const updateSpaceForm = document.getElementById('update-space-form');
-const updateSpaceFormCloseButton = document.getElementById('update-space-cloe-btn');
+const updateSpaceFormCloseButton = document.getElementById('update-space-close-btn');
 const updateSpaceFormDeleteButton = document.getElementById('update-space-delete-btn');
 const updateSpaceFormSaveButton = document.getElementById('update-space-save-btn');
 const newSpaceFormSaveButton = document.getElementById('new-space-save-btn')
@@ -112,3 +114,89 @@ newSpaceFormSaveButton.addEventListener('click', () => {
   // This button will add the annotation object to the list and hide the newSpace Form
   newSpaceForm.hidden = true
 })
+
+// Add a way to drag and move the pop-ups (later implementation)
+
+submitProject.addEventListener('click', async () =>{
+  // Create directories (project name and assets directory)
+  createDirectories()
+  // Create the files (index.html,index.css,index.js,assets/files)
+  createFiles()
+  // Write all pertinent info to the files (Create the html, css, and js.
+  //  Will also need to write the files to the assets folder)
+  writeToFiles()
+  // Zip the folder
+  await zipProjectFolder()
+  // Download zipped folder
+  downloadProjectFolder()
+});
+
+// Functions
+
+function createDirectories(){
+  // Creates the necessary folders to write to
+  const folderName = projectName.ariaValueMax;
+  const assets = `./${folderName}/assets`
+
+  // Create directories if they don't exist
+  for (const dir of [folderName, assets]) {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+      console.log(`Created: ${dir}`);
+    }
+}
+}
+
+function writeToFiles(){
+  // This will need to be a loop where for each mapping create a new image map (html)
+  // This loop will also need to add onclick events for each image map
+
+  // This will need to be a loop where we create onclick events for each image map and creates associated variables for this as well
+  // It will need to create the variables (Dom elements for button clicks) first and then the click events. 
+  // The click events will be for the image maps opening a popup
+  // Inside the popup there can be static or dynamic values that are generated 
+  // Each newly created popup will also need one event that is tied to the pop-ups close button
+
+  // The css can be static with general styles, although the amount of elements created is going to matter
+  // If we are to auto load data statically then there will need to be unique css for each popup, which will be a lot
+  // If we are to autofill each popup, then we will need the image map objects and whenever a popup is clicked, it
+  // will need to search the image map object for the coordinates and then auto populate
+}
+
+async function zipProjectFolder(){
+  // Using JSZip, this will zip the project folder
+const zip = new JSZip();
+
+  // Helper function to recursively add folder contents to the ZIP
+  function addFolderToZip(zipObj, folderPath) {
+    const items = fs.readdirSync(folderPath);
+    items.forEach((item) => {
+      const itemPath = path.join(folderPath, item);
+      const stats = fs.statSync(itemPath);
+      if (stats.isDirectory()) {
+        const folderZip = zipObj.folder(item);
+        addFolderToZip(folderZip, itemPath);
+      } else {
+        const fileData = fs.readFileSync(itemPath);
+        zipObj.file(item, fileData);
+      }
+    });
+  }
+
+  // Add parent folder contents
+  addFolderToZip(zip, folderName);
+
+  // Generate and save the zip file
+  const content = await zip.generateAsync({ type: "nodebuffer" });
+  fs.writeFileSync(`${folderName}.zip`, content);
+}
+
+function downloadProjectFolder(){
+  // Downloads the zipped project folder
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `${projectName.value}.zip`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}

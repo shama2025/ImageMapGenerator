@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="./src/style.css">
     <title>Floor Plan Map POC</title>
   </head>
   <body>
@@ -10,9 +11,10 @@
     <input type="file" id="image-input" accept="image/jpeg, image/png">
     <img id="floor-plan" />
     <input type="button" id="submit-floor-plan" value="Submit!">
-    <div id="space-form">
+    <div class="space-form" id="new-space-form-div">
       <!-- A form where users can add relevant data to a given space -->
        <form id="new-space-form" hidden>
+        <label class="form-header">New Floor Space</label>
           <button type="button" id="new-space-close-btn">X</button>
           <input type="text" placeholder="Name of Space" id="new-space-name">
           <textarea id="new-space-desc" placeholder="Add any notes here..."></textarea>
@@ -21,9 +23,10 @@
           <button id="new-space-save-btn">Save!</button>
        </form>
     </div>
-    <div id="space-form">
+    <div class="space-form" id="update-space-form-div">
          <!-- A form where users can update relevant data to a given space -->
        <form id="update-space-form" hidden>
+        <label class="form-header">Update Floor Space</label>
         <button id="update-space-close-btn" type="button">X</button>
           <input type="text" placeholder="Name of Space" id="update-space-name">
           <textarea id="update-space-desc" placeholder="Add any notes here..."></textarea>

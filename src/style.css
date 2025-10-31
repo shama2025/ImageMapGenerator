@@ -1,96 +1,170 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+/* Basic reset and font */
+* {
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
 }
 
 body {
   margin: 0;
+  padding: 0;
+  background-color: #f5f6fa;
   display: flex;
-  place-items: center;
-  min-width: 320px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
   min-height: 100vh;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+/* Inputs at the top */
+#dir-name,
+#image-input {
+  margin: 10px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
 }
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+#dir-name {
+  width: 250px;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.vanilla:hover {
-  filter: drop-shadow(0 0 2em #f7df1eaa);
-}
-
-.card {
-  padding: 2em;
-}
-
-.read-the-docs {
-  color: #888;
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
+#image-input {
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+/* Larger floor plan image, centered */
+#floor-plan {
+  display: block;
+  margin: 30px auto;
+  max-width: 95%;
+  max-height: 85vh;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  object-fit: contain;
+}
+
+/* Submit button styling */
+#submit-floor-plan {
+  padding: 10px 20px;
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+#submit-floor-plan:hover {
+  background-color: #45a049;
+}
+
+/* Forms container */
+.space-form {
+  position: relative;
+}
+
+/* Ensure forms are hidden until explicitly shown */
+#new-space-form[hidden],
+#update-space-form[hidden] {
+  display: none !important;
+}
+
+/* Common popup form styling */
+#new-space-form,
+#update-space-form {
+  background: white;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  padding: 20px;
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  /* Move to the side instead of center */
+  position: fixed;
+  top: 50%;
+  right: 40px;
+  transform: translateY(-50%);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+  z-index: 1000;
+}
+
+/* Distinguish the update form slightly */
+#update-space-form {
+  right: 40px;
+  top: 55%;
+}
+
+/* Form header label */
+.form-header {
+  font-weight: bold;
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 5px;
+  color: #333;
+}
+
+/* Close button */
+#new-space-close-btn,
+#update-space-close-btn {
+  background: #ff4d4f;
+  color: white;
+  border: none;
+  align-self: flex-end;
+  border-radius: 50%;
+  width: 25px;
+  height: 25px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* Save/Delete buttons */
+#new-space-save-btn,
+#update-space-save-btn,
+#update-space-delete-btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+#new-space-save-btn,
+#update-space-save-btn {
+  background-color: #4CAF50;
+  color: white;
+}
+
+#new-space-save-btn:hover,
+#update-space-save-btn:hover {
+  background-color: #45a049;
+}
+
+#update-space-delete-btn {
+  background-color: #ff4d4f;
+  color: white;
+}
+
+#update-space-delete-btn:hover {
+  background-color: #d9363e;
+}
+
+textarea {
+  resize: none;
+}
+
+#new-space-form::before,
+#update-space-form::before {
+  content: "";
+  position: absolute;
+  top: -10px;
+  left: -10px;
+  right: -10px;
+  bottom: -10px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.05);
+  z-index: -1;
 }

@@ -12,6 +12,7 @@
     "vite": "^7.1.7"
   },
   "dependencies": {
-    "@annotorious/annotorious": "^3.7.12"
+    "@annotorious/annotorious": "^3.7.12",
+    "jszip": "^3.10.1"
   }
 }
