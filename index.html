@@ -6,9 +6,11 @@
     <title>Floor Plan Map POC</title>
   </head>
   <body>
+    <input type="text" id="dir-name" placeholder="Project Name">  
     <input type="file" id="image-input" accept="image/jpeg, image/png">
     <img id="floor-plan" />
-    <div id="space-form" >
+    <input type="button" id="submit-floor-plan" value="Submit!">
+    <div id="space-form">
       <!-- A form where users can add relevant data to a given space -->
        <form id="new-space-form" hidden>
           <button type="button" id="new-space-close-btn">X</button>

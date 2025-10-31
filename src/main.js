@@ -11,6 +11,8 @@ const updateSpaceFormCloseButton = document.getElementById('update-space-cloe-bt
 const updateSpaceFormDeleteButton = document.getElementById('update-space-delete-btn');
 const updateSpaceFormSaveButton = document.getElementById('update-space-save-btn');
 const newSpaceFormSaveButton = document.getElementById('new-space-save-btn')
+const projectName = document.getElementById('dir-name');
+const submitProject = document.getElementById('submit-floor-plan');
 
 // Utility Variables
 const floorSpaces = { // Object designed to hold data regarding all spaces on a given floor
