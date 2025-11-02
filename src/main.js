@@ -17,7 +17,7 @@ const projectName = document.getElementById('dir-name');
 const submitProject = document.getElementById('submit-floor-plan');
 
 // Utility Variables
-const floorSpaces = { // Object designed to hold data regarding all spaces on a given floor
+const floorSpace = { // Object designed to hold data regarding all spaces on a given floor
   id:0, // ID of the mapping (this is found from the annotation object)
   name: '', // The name of the floor space
   desc: '', // Any relevant text regarding the floor space
@@ -25,9 +25,10 @@ const floorSpaces = { // Object designed to hold data regarding all spaces on a 
   coordinates: 0, // Also found with the annotation object, used to help create the image map element
   geometry: '' // The type of shape the annotation takes (Rectangle, Polygon, etc...)
 }
-
-let annotaitonId = 0; // This is the temp variable for the annotations unique id
-let annotaitonCoordinates = {x: 0 , y:0 , w:0, h: 0}; // This is the temp object containig the bounds of the annotation
+let floorSpaces = []; // List of floorSpace objects
+let annotationID = 0; // This is the temp variable for the annotations unique id
+let annotationCoordinates = {minX: 0 , minY:0 , maxX:0, maxY: 0}; // This is the temp object containig the bounds of the annotation
+// Image map order (minX,minY,maxX,maxY)
 
 // Example of annotation object
 
@@ -74,9 +75,13 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Creates the annotation
   anno.on('createAnnotation', (a) => {
-    newSpaceForm.hidden = false
-    console.log(a)
-    // Update this to display when the user finishes the annotation
+    // When users creates annotation saves the ID and coordinates for later use
+    newSpaceForm.hidden = false;
+    annotationID = a.id;
+    annotationCoordinates.maxX = a.target.selector.geometry.bounds.maxX.toFixed(2);
+    annotationCoordinates.maxY = a.target.selector.geometry.bounds.maxY.toFixed(2);
+    annotationCoordinates.minX = a.target.selector.geometry.bounds.minX.toFixed(2);
+    annotationCoordinates.minY = a.target.selector.geometry.bounds.minY.toFixed(2);
   });
 
   anno.on('updateAnnotation', (a) => {
@@ -111,7 +116,15 @@ updateSpaceFormSaveButton.addEventListener('click', () => {
 });
 
 newSpaceFormSaveButton.addEventListener('click', () => {
-  // This button will add the annotation object to the list and hide the newSpace Form
+  // This button will push the floorSpace object to the list and hide the newSpace Form
+  const data = new FormData(newSpaceForm);
+  floorSpace.coordinates = annotationCoordinates;
+  floorSpace.id = annotationID;
+  floorSpace.desc = data.get("new-space-desc");
+  floorSpace.name = data.get("new-space-name");
+  floorSpace.files = data.getAll("new-space-files");
+  floorSpace.geometry = "rect";
+  floorSpaces.push(floorSpace);
   newSpaceForm.hidden = true
 })
 
