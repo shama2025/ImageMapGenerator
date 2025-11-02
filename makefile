@@ -6,3 +6,6 @@ build:
 
 preview:    
 	npm run preview
+
+lint:
+	npx prettier . --write

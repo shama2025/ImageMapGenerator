@@ -47,7 +47,7 @@ body {
 /* Submit button styling */
 #submit-floor-plan {
   padding: 10px 20px;
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
   border: none;
   border-radius: 6px;
@@ -134,7 +134,7 @@ body {
 
 #new-space-save-btn,
 #update-space-save-btn {
-  background-color: #4CAF50;
+  background-color: #4caf50;
   color: white;
 }
 
