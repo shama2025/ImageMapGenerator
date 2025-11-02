@@ -12,7 +12,10 @@ const updateSpaceForm = document.getElementById('update-space-form');
 const updateSpaceFormCloseButton = document.getElementById('update-space-close-btn');
 const updateSpaceFormDeleteButton = document.getElementById('update-space-delete-btn');
 const updateSpaceFormSaveButton = document.getElementById('update-space-save-btn');
-const newSpaceFormSaveButton = document.getElementById('new-space-save-btn')
+const updateSpaceFormNameInput = document.getElementById('update-space-name');
+const updateSpaceFormDescInput = document.getElementById('update-space-desc');
+const updateSpaceFormFilesInput = document.getElementById('update-space-files');
+const newSpaceFormSaveButton = document.getElementById('new-space-save-btn');
 const projectName = document.getElementById('dir-name');
 const submitProject = document.getElementById('submit-floor-plan');
 
@@ -21,7 +24,7 @@ const floorSpace = { // Object designed to hold data regarding all spaces on a g
   id:0, // ID of the mapping (this is found from the annotation object)
   name: '', // The name of the floor space
   desc: '', // Any relevant text regarding the floor space
-  files: ['',''], // This is going to be a list file paths that points to an assets folder in the output
+  files: '', // This is going to be a list file paths that points to an assets folder in the output
   coordinates: 0, // Also found with the annotation object, used to help create the image map element
   geometry: '' // The type of shape the annotation takes (Rectangle, Polygon, etc...)
 }
@@ -85,6 +88,24 @@ window.addEventListener('DOMContentLoaded', () => {
   });
 
   anno.on('updateAnnotation', (a) => {
+    // When user wants to update the annotation, this will auto fill the form with the current annotation
+    // Get the current floor space by ID
+    const currentAnnotation = a.id;
+    console.log(currentAnnotation)
+    const currentFloorSpace = floorSpaces.find(floorSpace => floorSpace.id == currentAnnotation);
+    console.log("Current Floor plan files: ",currentFloorSpace.files)
+    // Save the current floor space coordinates in case the change was accidental
+    const currentCoordinates = currentFloorSpace.coordinates;
+    // Auto fill the form with the current floor space
+    updateSpaceFormDescInput.value = currentFloorSpace.desc;
+    updateSpaceFormNameInput.value = currentFloorSpace.name;
+    // Add the files to the form
+    const dataTransfer = new DataTransfer(); // Object used to move files
+    currentFloorSpace.files.forEach(file =>{
+        dataTransfer.items.add(file);
+    });
+    console.log(dataTransfer.files)
+    updateSpaceFormFilesInput.files = dataTransfer.files;
     updateSpaceForm.hidden = false
   });
 
@@ -120,9 +141,9 @@ newSpaceFormSaveButton.addEventListener('click', () => {
   const data = new FormData(newSpaceForm);
   floorSpace.coordinates = annotationCoordinates;
   floorSpace.id = annotationID;
-  floorSpace.desc = data.get("new-space-desc");
-  floorSpace.name = data.get("new-space-name");
-  floorSpace.files = data.getAll("new-space-files");
+  floorSpace.desc = data.get("desc");
+  floorSpace.name = data.get("name");
+  floorSpace.files = data.getAll("files");
   floorSpace.geometry = "rect";
   floorSpaces.push(floorSpace);
   newSpaceForm.hidden = true
