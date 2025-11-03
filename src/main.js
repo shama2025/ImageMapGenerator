@@ -26,6 +26,7 @@ const projectName = document.getElementById("dir-name");
 const submitProject = document.getElementById("submit-floor-plan");
 
 // Utility Variables
+const anno = createImageAnnotator(image); // Create Annotorious instance
 const floorSpace = {
   // Object designed to hold data regarding all spaces on a given floor
   id: 0, // ID of the mapping (this is found from the annotation object)
@@ -36,27 +37,12 @@ const floorSpace = {
   geometry: "", // The type of shape the annotation takes (Rectangle, Polygon, etc...)
 };
 let floorSpaces = []; // List of floorSpace objects
-let annotationID = 0; // This is the temp variable for the annotations unique id
-let annotationCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 }; // This is the temp object containig the bounds of the annotation
+let annotationID = 0; // This is the temp variable for the annotations unique id upon creation
+let annotationCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 }; // This is the temp object containig the bounds of the annotation upon creation
+let currentAnnotation = 0; // Temporary variable for storing current annotation ID upon updating
+let currentCoordinates = 0; // Temporary vraiable for storing current annotation coordinates upon updating
+let newCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 }; // This is a temp object for storing the new coordinates of the floor space
 // Image map order (minX,minY,maxX,maxY)
-
-// Example of annotation object
-
-// id: "92e60592-0af7-4363-af4a-bbe6fde2e854"
-
-// target: Object
-
-// annotation: "92e60592-0af7-4363-af4a-bbe6fde2e854"
-
-// created: Thu Oct 30 2025 19:36:41 GMT-0400 (Eastern Daylight Time)
-
-// creator: {isGuest: true, id: "mgAwtxXPP3bMXKOV5S6O"}
-
-// selector: Object
-
-// geometry: {bounds: Object, x: 30, y: 86, w: 79, h: 60}
-
-// type: "RECTANGLE"
 
 // Event listeners
 imageInput.addEventListener("change", function (event) {
@@ -80,8 +66,6 @@ window.addEventListener("DOMContentLoaded", () => {
     console.error("Image not found!");
     return;
   }
-  // Create Annotorious instance
-  const anno = createImageAnnotator(image);
 
   // Creates the annotation
   anno.on("createAnnotation", (a) => {
@@ -101,14 +85,16 @@ window.addEventListener("DOMContentLoaded", () => {
   anno.on("updateAnnotation", (a) => {
     // When user wants to update the annotation, this will auto fill the form with the current annotation
     // Get the current floor space by ID
-    const currentAnnotation = a.id;
-    console.log(currentAnnotation);
-    const currentFloorSpace = floorSpaces.find(
-      (floorSpace) => floorSpace.id == currentAnnotation,
-    );
+    currentAnnotation = a.id;
+    const currentFloorSpace = findFloorPlan(currentAnnotation);
     console.log("Current Floor plan files: ", currentFloorSpace.files);
     // Save the current floor space coordinates in case the change was accidental
-    const currentCoordinates = currentFloorSpace.coordinates;
+    currentCoordinates = currentFloorSpace.coordinates;
+    // Get the new coordinates in case of submit
+    newCoordinates.maxX = a.target.selector.geometry.bounds.maxX.toFixed(2);
+    newCoordinates.maxY = a.target.selector.geometry.bounds.maxY.toFixed(2);
+    newCoordinates.minX = a.target.selector.geometry.bounds.minX.toFixed(2);
+    newCoordinates.minY = a.target.selector.geometry.bounds.minY.toFixed(2);
     // Auto fill the form with the current floor space
     updateSpaceFormDescInput.value = currentFloorSpace.desc;
     updateSpaceFormNameInput.value = currentFloorSpace.name;
@@ -122,8 +108,24 @@ window.addEventListener("DOMContentLoaded", () => {
     updateSpaceForm.hidden = false;
   });
 
-  // anno.on('updateAnnotation', (a) => console.log('Updated:', a));
-  anno.on("deleteAnnotation", (a) => console.log("Deleted:", a));
+  anno.on('clickAnnotation', (a) =>{
+    // Click event for an annotation
+    /**
+     * @todo Upon clicking an annotation, the update space form should display
+     */
+    console.log("Open annotation")
+    updateSpaceForm.hidden = false;
+    const currentFloorSpace = findFloorPlan(a.id);
+    updateSpaceFormDescInput.value = currentFloorSpace.desc;
+    updateSpaceFormNameInput.value = currentFloorSpace.name;
+    // Add the files to the form
+    const dataTransfer = new DataTransfer(); // Object used to move files
+    currentFloorSpace.files.forEach((file) => {
+      dataTransfer.items.add(file);
+    });
+    console.log(dataTransfer.files);
+    updateSpaceFormFilesInput.files = dataTransfer.files;
+  });
 });
 
 // Hides the new space form popup
@@ -141,12 +143,34 @@ updateSpaceFormCloseButton.addEventListener("click", () => {
 updateSpaceFormDeleteButton.addEventListener("click", () => {
   // This button will remove the annotation from the list and hide the update-space-form
   console.log("Deleting annotation from annotaitons");
+  console.log("Pre-delete: ", floorSpaces.length);
+  const floorPlan = findFloorPlan(currentAnnotation);
+  anno.removeAnnotation(floorPlan.id);
+  floorSpaces.pop(floorPlan);
   updateSpaceForm.hidden = true;
+  console.log("Post-delete", floorSpaces.length);
 });
 
 updateSpaceFormSaveButton.addEventListener("click", () => {
   // This button will update any changes made to the annotation object
+  // Remove first before updating
+  const floorPlan = findFloorPlan(currentAnnotation);
+  floorSpaces.pop(floorPlan);
+  // Add new data to the form
+  const data = new FormData(updateSpaceForm);
+  if (coordinatesAreEqual(newCoordinates, currentCoordinates)) {
+    floorSpace.coordinates = currentCoordinates;
+  } else {
+    floorSpace.coordinates = newCoordinates;
+  }
+  floorSpace.id = currentAnnotation;
+  floorSpace.desc = data.get("desc");
+  floorSpace.name = data.get("name");
+  floorSpace.files = data.getAll("files");
+  floorSpace.geometry = "rect";
+  floorSpaces.push(floorSpace);
   updateSpaceForm.hidden = true;
+  console.log("Updated Floor space", floorSpaces);
 });
 
 newSpaceFormSaveButton.addEventListener("click", () => {
@@ -160,6 +184,7 @@ newSpaceFormSaveButton.addEventListener("click", () => {
   floorSpace.geometry = "rect";
   floorSpaces.push(floorSpace);
   newSpaceForm.hidden = true;
+  console.log("New floor spce created: ", floorSpaces);
 });
 
 // Add a way to drag and move the pop-ups (later implementation)
@@ -244,4 +269,24 @@ function downloadProjectFolder() {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+
+function findFloorPlan(id) {
+  // Finds the floor plan by ID
+  const currentAnnotation = id;
+  console.log(currentAnnotation);
+  const currentFloorSpace = floorSpaces.find(
+    (floorSpace) => floorSpace.id == currentAnnotation,
+  );
+  return currentFloorSpace;
+}
+
+function coordinatesAreEqual(a, b) {
+  // Compares the two cooradinates
+  return (
+    a.minX === b.minX &&
+    a.minY === b.minY &&
+    a.maxX === b.maxX &&
+    a.maxY === b.maxY
+  );
 }
