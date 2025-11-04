@@ -27,15 +27,6 @@ const submitProject = document.getElementById("submit-floor-plan");
 
 // Utility Variables
 const anno = createImageAnnotator(image); // Create Annotorious instance
-const floorSpace = {
-  // Object designed to hold data regarding all spaces on a given floor
-  id: 0, // ID of the mapping (this is found from the annotation object)
-  name: "", // The name of the floor space
-  desc: "", // Any relevant text regarding the floor space
-  files: "", // This is going to be a list file paths that points to an assets folder in the output
-  coordinates: 0, // Also found with the annotation object, used to help create the image map element
-  geometry: "", // The type of shape the annotation takes (Rectangle, Polygon, etc...)
-};
 let floorSpaces = []; // List of floorSpace objects
 let annotationID = 0; // This is the temp variable for the annotations unique id upon creation
 let annotationCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 }; // This is the temp object containig the bounds of the annotation upon creation
@@ -87,7 +78,6 @@ window.addEventListener("DOMContentLoaded", () => {
     // Get the current floor space by ID
     currentAnnotation = a.id;
     const currentFloorSpace = findFloorPlan(currentAnnotation);
-    console.log("Current Floor plan files: ", currentFloorSpace.files);
     // Save the current floor space coordinates in case the change was accidental
     currentCoordinates = currentFloorSpace.coordinates;
     // Get the new coordinates in case of submit
@@ -99,33 +89,37 @@ window.addEventListener("DOMContentLoaded", () => {
     updateSpaceFormDescInput.value = currentFloorSpace.desc;
     updateSpaceFormNameInput.value = currentFloorSpace.name;
     // Add the files to the form
-    const dataTransfer = new DataTransfer(); // Object used to move files
-    currentFloorSpace.files.forEach((file) => {
-      dataTransfer.items.add(file);
-    });
-    console.log(dataTransfer.files);
-    updateSpaceFormFilesInput.files = dataTransfer.files;
+    if (currentFloorSpace.files.length === 0) {
+      updateSpaceFormFilesInput.files = "";
+    } else {
+      const dataTransfer = new DataTransfer(); // Object used to move files
+      currentFloorSpace.files.forEach((file) => {
+        dataTransfer.items.add(file);
+      });
+      console.log(dataTransfer.files);
+      updateSpaceFormFilesInput.files = dataTransfer.files;
+    }
     updateSpaceForm.hidden = false;
   });
 
-  anno.on('clickAnnotation', (a) =>{
-    // Click event for an annotation
-    /**
-     * @todo Upon clicking an annotation, the update space form should display
-     */
-    console.log("Open annotation")
-    updateSpaceForm.hidden = false;
-    const currentFloorSpace = findFloorPlan(a.id);
-    updateSpaceFormDescInput.value = currentFloorSpace.desc;
-    updateSpaceFormNameInput.value = currentFloorSpace.name;
-    // Add the files to the form
-    const dataTransfer = new DataTransfer(); // Object used to move files
-    currentFloorSpace.files.forEach((file) => {
-      dataTransfer.items.add(file);
-    });
-    console.log(dataTransfer.files);
-    updateSpaceFormFilesInput.files = dataTransfer.files;
-  });
+  // anno.on('clickAnnotation', (a) =>{
+  //   // Click event for an annotation
+  //   /**
+  //    * @todo Upon clicking an annotation, the update space form should display
+  //    */
+  //   console.log("Open annotation")
+  //   updateSpaceForm.hidden = false;
+  //   const currentFloorSpace = findFloorPlan(a.id);
+  //   updateSpaceFormDescInput.value = currentFloorSpace.desc;
+  //   updateSpaceFormNameInput.value = currentFloorSpace.name;
+  //   // Add the files to the form
+  //   const dataTransfer = new DataTransfer(); // Object used to move files
+  //   currentFloorSpace.files.forEach((file) => {
+  //     dataTransfer.items.add(file);
+  //   });
+  //   console.log(dataTransfer.files);
+  //   updateSpaceFormFilesInput.files = dataTransfer.files;
+  // });
 });
 
 // Hides the new space form popup
@@ -145,6 +139,7 @@ updateSpaceFormDeleteButton.addEventListener("click", () => {
   console.log("Deleting annotation from annotaitons");
   console.log("Pre-delete: ", floorSpaces.length);
   const floorPlan = findFloorPlan(currentAnnotation);
+  console.log(floorPlan);
   anno.removeAnnotation(floorPlan.id);
   floorSpaces.pop(floorPlan);
   updateSpaceForm.hidden = true;
@@ -155,20 +150,18 @@ updateSpaceFormSaveButton.addEventListener("click", () => {
   // This button will update any changes made to the annotation object
   // Remove first before updating
   const floorPlan = findFloorPlan(currentAnnotation);
-  floorSpaces.pop(floorPlan);
-  // Add new data to the form
-  const data = new FormData(updateSpaceForm);
-  if (coordinatesAreEqual(newCoordinates, currentCoordinates)) {
-    floorSpace.coordinates = currentCoordinates;
-  } else {
-    floorSpace.coordinates = newCoordinates;
+  const index = floorSpaces.findIndex((f) => f.id === currentAnnotation);
+  if (index !== -1) {
+    floorSpaces[index] = {
+      ...floorSpaces[index],
+      name: data.get("name"),
+      desc: data.get("desc"),
+      files: data.getAll("files"),
+      coordinates: coordinatesAreEqual(newCoordinates, currentCoordinates)
+        ? currentCoordinates
+        : newCoordinates,
+    };
   }
-  floorSpace.id = currentAnnotation;
-  floorSpace.desc = data.get("desc");
-  floorSpace.name = data.get("name");
-  floorSpace.files = data.getAll("files");
-  floorSpace.geometry = "rect";
-  floorSpaces.push(floorSpace);
   updateSpaceForm.hidden = true;
   console.log("Updated Floor space", floorSpaces);
 });
@@ -176,12 +169,15 @@ updateSpaceFormSaveButton.addEventListener("click", () => {
 newSpaceFormSaveButton.addEventListener("click", () => {
   // This button will push the floorSpace object to the list and hide the newSpace Form
   const data = new FormData(newSpaceForm);
-  floorSpace.coordinates = annotationCoordinates;
-  floorSpace.id = annotationID;
-  floorSpace.desc = data.get("desc");
-  floorSpace.name = data.get("name");
-  floorSpace.files = data.getAll("files");
-  floorSpace.geometry = "rect";
+  const floorSpace = {
+    // Object designed to hold data regarding all spaces on a given floor
+    id: annotationID, // ID of the mapping (this is found from the annotation object)
+    name: data.get("name"), // The name of the floor space
+    desc: data.get("desc"), // Any relevant text regarding the floor space
+    files: data.getAll("files"), // This is going to be a list file paths that points to an assets folder in the output
+    coordinates: annotationCoordinates, // Also found with the annotation object, used to help create the image map element
+    geometry: "rect", // The type of shape the annotation takes (Rectangle, Polygon, etc...)
+  };
   floorSpaces.push(floorSpace);
   newSpaceForm.hidden = true;
   console.log("New floor spce created: ", floorSpaces);
@@ -207,7 +203,7 @@ submitProject.addEventListener("click", async () => {
 
 function createDirectories() {
   // Creates the necessary folders to write to
-  const folderName = projectName.ariaValueMax;
+  const folderName = projectName.value;
   const assets = `./${folderName}/assets`;
 
   // Create directories if they don't exist
