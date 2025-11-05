@@ -290,6 +290,9 @@ async function createAndZipProject() {
     </body>
     </html>
   `;
+  /**
+   * @todo: Fix the file auto input 
+   * */ 
 
   // Add index.html to project folder
   zip.file(`${folderName}/index.html`, content);
