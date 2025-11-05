@@ -34,6 +34,7 @@ let currentAnnotation = 0; // Temporary variable for storing current annotation 
 let currentCoordinates = 0; // Temporary vraiable for storing current annotation coordinates upon updating
 let newCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 }; // This is a temp object for storing the new coordinates of the floor space
 // Image map order (minX,minY,maxX,maxY)
+let imageName = '';
 
 // Event listeners
 imageInput.addEventListener("change", function (event) {
@@ -46,6 +47,7 @@ imageInput.addEventListener("change", function (event) {
       console.log(e);
       image.alt = `Floor Plan: ${file.name}`;
       image.src = e.target.result;
+      imageName = file.name;
     };
 
     reader.readAsDataURL(file);
@@ -186,11 +188,9 @@ newSpaceFormSaveButton.addEventListener("click", () => {
 // Add a way to drag and move the pop-ups (later implementation)
 
 submitProject.addEventListener("click", async () => {
+  console.log("Submit Clicked!")
   // Create directories (project name and assets directory)
   createDirectories();
-  // Create the files (index.html,index.css,index.js,assets/files)
-  createFiles();
-  // Write all pertinent info to the files (Create the html, css, and js.
   //  Will also need to write the files to the assets folder)
   writeToFiles();
   // Zip the folder
@@ -215,56 +215,112 @@ function createDirectories() {
   }
 }
 
-function writeToFiles() {
-  // This will need to be a loop where for each mapping create a new image map (html)
-  // This loop will also need to add onclick events for each image map
-  // This will need to be a loop where we create onclick events for each image map and creates associated variables for this as well
-  // It will need to create the variables (Dom elements for button clicks) first and then the click events.
-  // The click events will be for the image maps opening a popup
-  // Inside the popup there can be static or dynamic values that are generated
-  // Each newly created popup will also need one event that is tied to the pop-ups close button
-  // The css can be static with general styles, although the amount of elements created is going to matter
-  // If we are to auto load data statically then there will need to be unique css for each popup, which will be a lot
-  // If we are to autofill each popup, then we will need the image map objects and whenever a popup is clicked, it
-  // will need to search the image map object for the coordinates and then auto populate
-}
+submitProject.addEventListener("click", async () => {
+  console.log("Submit Clicked!");
 
-async function zipProjectFolder() {
-  // Using JSZip, this will zip the project folder
+  // Generate project files and zip
+  const zipBlob = await createAndZipProject();
+
+  // Trigger download
+  downloadProjectFolder(zipBlob, `${projectName.value}.zip`);
+});
+
+async function createAndZipProject() {
   const zip = new JSZip();
+  const folderName = projectName.value.trim();
+  const assetsFolder = zip.folder(`${folderName}/assets`);
 
-  // Helper function to recursively add folder contents to the ZIP
-  function addFolderToZip(zipObj, folderPath) {
-    const items = fs.readdirSync(folderPath);
-    items.forEach((item) => {
-      const itemPath = path.join(folderPath, item);
-      const stats = fs.statSync(itemPath);
-      if (stats.isDirectory()) {
-        const folderZip = zipObj.folder(item);
-        addFolderToZip(folderZip, itemPath);
-      } else {
-        const fileData = fs.readFileSync(itemPath);
-        zipObj.file(item, fileData);
-      }
-    });
+  // Build index.html
+  let content = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <title>${folderName}</title>
+      <style>
+        body { font-family: Arial, sans-serif; }
+        #output { margin-top: 20px; font-size: 18px; color: #333; }
+      </style>
+    </head>
+    <body>
+      <img src="./assets/${imageName}" alt="Floor Plan" usemap="#floormap">
+      <map name="floormap">
+        ${floorSpaces.map(fs =>
+          `<area alt="${fs.name}" title="${fs.name}" coords="${fs.coordinates.minX},${fs.coordinates.minY},${fs.coordinates.maxX},${fs.coordinates.maxY}" shape="${fs.geometry}" data-name="${fs.id}">`
+        ).join("\n")}
+      </map>
+
+      <div>
+        <form id="floor-space-form" hidden>
+          <button type="button" id="close-form">X</button>
+          <label for="space-name">Name of Floor Space:</label>
+          <input type="text" id="space-name" name="space-name" />
+          <label for="space-desc">Description:</label>
+          <textarea id="space-desc" name="space-desc"></textarea>
+          <label for="space-files">Upload Files:</label>
+          <input type="file" id="space-files" name="space-files" />
+        </form>
+      </div>
+
+      <script>
+        const form = document.getElementById('floor-space-form');
+        const nameField = document.getElementById('space-name');
+        const desc = document.getElementById('space-desc');
+        const files = document.getElementById('space-files');
+        const close = document.getElementById('close-form');
+        const areas = document.querySelectorAll('area');
+        const floorSpaces = ${JSON.stringify(floorSpaces)};
+
+        close.addEventListener('click', () => (form.hidden = true));
+
+        areas.forEach(area => {
+          area.addEventListener('click', event => {
+            event.preventDefault();
+            const fs = floorSpaces.find(f => f.id == area.dataset.name);
+            nameField.value = fs.name;
+            desc.value = fs.desc;
+            form.hidden = false;
+            const dataTransfer = new DataTransfer(); // Object used to move files
+            fs.files.forEach((file) => {
+            dataTransfer.items.add(file);
+            });
+            files.files = dataTransfer.files;
+          });
+        });
+      </script>
+    </body>
+    </html>
+  `;
+
+  // Add index.html to project folder
+  zip.file(`${folderName}/index.html`, content);
+
+  // Add assets (images, etc.)
+  for (const fs of floorSpaces) {
+    for (const file of fs.files) {
+      const arrayBuffer = await file.arrayBuffer();
+      assetsFolder.file(`${fs.id}-${file.name}`, arrayBuffer);
+    }
   }
+  //[Log] <img id="floor-plan" alt="Floor Plan: text.png" 
+  // src="data:image/png;base64,iVBOR…8F0TaPBJ0lFLMAAAAAElFTkSuQmCC" style="display: block;"> (main.js, line 297)
 
-  // Add parent folder contents
-  addFolderToZip(zip, folderName);
+  console.log(image)
+  const response = await fetch(image.src); // fetch() turns the data URL or URL into a Response
+  const arrayBuffer = await response.arrayBuffer(); // convert to binary
+  assetsFolder.file(imageName, arrayBuffer); // ✅ add binary data to the zip
 
-  // Generate and save the zip file
-  const content = await zip.generateAsync({ type: "nodebuffer" });
-  fs.writeFileSync(`${folderName}.zip`, content);
+  // Generate ZIP
+  const blob = await zip.generateAsync({ type: "blob" });
+  return blob;
 }
 
-function downloadProjectFolder() {
-  // Downloads the zipped project folder
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${projectName.value}.zip`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+function downloadProjectFolder(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
 }
 
 function findFloorPlan(id) {
