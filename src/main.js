@@ -236,10 +236,142 @@ async function createAndZipProject() {
     <html>
     <head>
       <title>${folderName}</title>
-      <style>
-        body { font-family: Arial, sans-serif; }
-        #output { margin-top: 20px; font-size: 18px; color: #333; }
-      </style>
+   <style>
+    /* General Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      line-height: 1.6;
+      background-color: #f4f4f9;
+      color: #333;
+      padding: 20px;
+    }
+
+    h1 {
+      font-size: 24px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    /* Image and map */
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    /* Floor map interaction areas */
+    area {
+      outline: none;
+    }
+
+    /* Output Area */
+    #output {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #333;
+      padding: 10px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+
+    /* Form Styling */
+    form {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      margin-top: 30px;
+      position: relative;
+      transition: opacity 0.3s ease-in-out;
+    }
+
+    form.hidden {
+      display: none;
+    }
+
+    label {
+      display: block;
+      font-size: 16px;
+      margin-bottom: 8px;
+      color: #555;
+    }
+
+    input[type="text"], textarea {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 14px;
+      background-color: #f9f9f9;
+    }
+
+    input[type="text"]:focus, textarea:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+
+    button[type="button"] {
+      background-color: #ff4d4f;
+      color: white;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+
+    button[type="button"]:hover {
+      background-color: #d93638;
+    }
+
+    #misc-files {
+      margin-top: 10px;
+    }
+
+    /* iframe Styling */
+    iframe {
+      border: none;
+      border-radius: 8px;
+      margin-top: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Image Styling */
+    img {
+      display: block;
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      margin-top: 15px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+      form {
+        width: 90%;
+      }
+
+      iframe {
+        height: 300px;
+      }
+    }
+
+  </style>
     </head>
     <body>
       <img src="./assets/${imageName}" alt="Floor Plan" usemap="#floormap">
