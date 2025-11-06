@@ -134,6 +134,7 @@ updateSpaceFormDeleteButton.addEventListener("click", async () => {
 updateSpaceFormSaveButton.addEventListener("click", async () => {
   // This button will update any changes made to the annotation object
   // Remove first before updating
+  const data = new FormData(updateSpaceForm);
   const floorPlan = findFloorPlan(currentAnnotation);
   const index = floorSpaces.findIndex((f) => f.id === currentAnnotation);
   if (index !== -1) {
@@ -274,10 +275,10 @@ async function createAndZipProject() {
     }
 
     /* Image Styling */
-    img {
-      width: 80%; /* make bigger than default */
-      max-width: 1200px; /* don't exceed this size */
-      height: auto;
+    floor-plan {
+      width: 70%; /* make bigger than default */
+      max-width: 1000px;
+      height: 1000px;
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       display: block;
@@ -307,7 +308,7 @@ async function createAndZipProject() {
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       max-width: 400px;
       margin: 30px auto; /* center form horizontally */
-      position: relative;
+      position: fixed;
       transition: opacity 0.3s ease-in-out;
     }
 
@@ -385,7 +386,7 @@ async function createAndZipProject() {
 </head>
 <body>
   <div class="image-container">
-    <img src="./assets/${imageName}" alt="Floor Plan" usemap="#floormap">
+    <img src="./assets/${imageName}" alt="Floor Plan" usemap="#floormap" id="floor-plan">
   </div>
   <map name="floormap">
     ${floorSpaces
@@ -398,12 +399,13 @@ async function createAndZipProject() {
 
   <form id="floor-space-form" hidden>
     <button type="button" id="close-form">X</button>
-    <label for="space-name">Name of Floor Space:</label>
-    <input type="text" id="space-name" name="space-name" />
+    <h3 type="text" id="space-name" name="space-name"></h3>
     <label for="space-desc">Description:</label>
-    <textarea id="space-desc" name="space-desc"></textarea>
+    <textarea id="space-desc" name="space-desc" readonly></textarea>
     <label for="space-files">Files:</label>
-    <div id="misc-files"></div>
+    <div id="misc-files">
+      <file name="">
+    </div>
   </form>
 
   <script>
@@ -413,6 +415,9 @@ async function createAndZipProject() {
     const areas = document.querySelectorAll('area');
     const miscFiles = document.getElementById('misc-files');
 
+    let offsetX,
+    offsetY,
+    isDragging = false;
     const floorSpaces = ${JSON.stringify(floorSpaces)};
 
     document.getElementById('close-form').addEventListener('click', () => form.hidden = true);
@@ -421,29 +426,48 @@ async function createAndZipProject() {
       area.addEventListener('click', event => {
         event.preventDefault();
         const fs = floorSpaces.find(f => f.id == area.dataset.id);
-        nameField.value = fs.name;
+        nameField.innerText = fs.name;
         desc.value = fs.desc;
         form.hidden = false;
 
-        miscFiles.innerHTML = ''; // Clear previous files
+        // miscFiles.innerHTML = ''; // Clear previous files
 
-        fs.files.forEach(f => {
-          if (f.type.startsWith('image/')) {
-            const img = document.createElement('img');
-            img.src = f.dataURL;
-            img.alt = f.name;
-            img.style.maxWidth = '200px';
-            miscFiles.appendChild(img);
-          } else if (f.type === 'application/pdf') {
-            const iframe = document.createElement('iframe');
-            iframe.src = f.dataURL;
-            iframe.width = '400';
-            iframe.height = '300';
-            miscFiles.appendChild(iframe);
-          }
-        });
+        // fs.files.forEach(f => {
+        //   if (f.type.startsWith('image/')) {
+        //     const img = document.createElement('img');
+        //     img.src = f.dataURL;
+        //     img.alt = f.name;
+        //     img.style.maxWidth = '200px';
+        //     miscFiles.appendChild(img);
+        //   } else if (f.type === 'application/pdf') {
+        //     const iframe = document.createElement('iframe');
+        //     iframe.src = f.dataURL;
+        //     iframe.width = '400';
+        //     iframe.height = '300';
+        //     miscFiles.appendChild(iframe);
+        //   }
+        // });
       });
     });
+
+    form.addEventListener("mousedown", (event) => {
+  isDragging = true;
+  offsetX = event.clientX - form.getBoundingClientRect().left;
+  offsetY = event.clientY - form.getBoundingClientRect().top;
+  form.style.cursor = "grabbing";
+});
+
+document.addEventListener("mousemove", (event) => {
+  if (isDragging) {
+    form.style.left = event.clientX - offsetX + "px";
+    form.style.top = event.clientY - offsetY + "px";
+  }
+});
+
+document.addEventListener("mouseup", () => {
+  isDragging = false;
+  form.style.cursor = "grab";
+});
   </script>
 </body>
 </html>
@@ -452,10 +476,11 @@ async function createAndZipProject() {
   // Add index.html to project folder
   zip.file(`${folderName}/index.html`, content);
 
-  const response = await fetch(image.src);
-  const arrayBuffer = await response.arrayBuffer();
-  assetsFolder.file(imageName, arrayBuffer);
+  if (uploadedFile) {
+    assetsFolder.file(imageName, uploadedFile);
+  }
 
+  // Generate the ZIP file
   const blob = await zip.generateAsync({ type: "blob" });
   return blob;
 }
