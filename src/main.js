@@ -1,6 +1,5 @@
 import { createImageAnnotator } from "@annotorious/annotorious";
 import "@annotorious/annotorious/annotorious.css";
-import fs from "fs";
 import JSZip from "jszip";
 
 // DOM variables
@@ -35,6 +34,7 @@ let currentCoordinates = 0; // Temporary vraiable for storing current annotation
 let newCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 }; // This is a temp object for storing the new coordinates of the floor space
 // Image map order (minX,minY,maxX,maxY)
 let imageName = '';
+let offsetX, offsetY, isDragging = false;
 
 // Event listeners
 imageInput.addEventListener("change", function (event) {
@@ -103,25 +103,6 @@ window.addEventListener("DOMContentLoaded", () => {
     }
     updateSpaceForm.hidden = false;
   });
-
-  // anno.on('clickAnnotation', (a) =>{
-  //   // Click event for an annotation
-  //   /**
-  //    * @todo Upon clicking an annotation, the update space form should display
-  //    */
-  //   console.log("Open annotation")
-  //   updateSpaceForm.hidden = false;
-  //   const currentFloorSpace = findFloorPlan(a.id);
-  //   updateSpaceFormDescInput.value = currentFloorSpace.desc;
-  //   updateSpaceFormNameInput.value = currentFloorSpace.name;
-  //   // Add the files to the form
-  //   const dataTransfer = new DataTransfer(); // Object used to move files
-  //   currentFloorSpace.files.forEach((file) => {
-  //     dataTransfer.items.add(file);
-  //   });
-  //   console.log(dataTransfer.files);
-  //   updateSpaceFormFilesInput.files = dataTransfer.files;
-  // });
 });
 
 // Hides the new space form popup
@@ -136,7 +117,7 @@ updateSpaceFormCloseButton.addEventListener("click", () => {
   updateSpaceForm.hidden = true;
 });
 
-updateSpaceFormDeleteButton.addEventListener("click", () => {
+updateSpaceFormDeleteButton.addEventListener("click", async() => {
   // This button will remove the annotation from the list and hide the update-space-form
   console.log("Deleting annotation from annotaitons");
   console.log("Pre-delete: ", floorSpaces.length);
@@ -148,7 +129,7 @@ updateSpaceFormDeleteButton.addEventListener("click", () => {
   console.log("Post-delete", floorSpaces.length);
 });
 
-updateSpaceFormSaveButton.addEventListener("click", () => {
+updateSpaceFormSaveButton.addEventListener("click", async () => {
   // This button will update any changes made to the annotation object
   // Remove first before updating
   const floorPlan = findFloorPlan(currentAnnotation);
@@ -168,7 +149,7 @@ updateSpaceFormSaveButton.addEventListener("click", () => {
   console.log("Updated Floor space", floorSpaces);
 });
 
-newSpaceFormSaveButton.addEventListener("click", () => {
+newSpaceFormSaveButton.addEventListener("click", async () => {
   // This button will push the floorSpace object to the list and hide the newSpace Form
   const data = new FormData(newSpaceForm);
   const floorSpace = {
@@ -185,18 +166,43 @@ newSpaceFormSaveButton.addEventListener("click", () => {
   console.log("New floor spce created: ", floorSpaces);
 });
 
-// Add a way to drag and move the pop-ups (later implementation)
+  // Start dragging on mousedown
+  newSpaceForm.addEventListener('mousedown', (event) => {
+  isDragging = true;
+  offsetX = event.clientX - newSpaceForm.getBoundingClientRect().left;
+  offsetY = event.clientY - newSpaceForm.getBoundingClientRect().top;
+  newSpaceForm.style.cursor = 'grabbing';
+});
 
-submitProject.addEventListener("click", async () => {
-  console.log("Submit Clicked!")
-  // Create directories (project name and assets directory)
-  createDirectories();
-  //  Will also need to write the files to the assets folder)
-  writeToFiles();
-  // Zip the folder
-  await zipProjectFolder();
-  // Download zipped folder
-  downloadProjectFolder();
+document.addEventListener('mousemove', (event) => {
+  if (isDragging) {
+    newSpaceForm.style.left = (event.clientX - offsetX) + 'px';
+    newSpaceForm.style.top = (event.clientY - offsetY) + 'px';
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+  newSpaceForm.style.cursor = 'grab';
+});
+
+updateSpaceForm.addEventListener('mousedown', (event) => {
+  isDragging = true;
+  offsetX = event.clientX - updateSpaceForm.getBoundingClientRect().left;
+  offsetY = event.clientY - updateSpaceForm.getBoundingClientRect().top;
+  updateSpaceForm.style.cursor = 'grabbing';
+});
+
+document.addEventListener('mousemove', (event) => {
+  if (isDragging) {
+    updateSpaceForm.style.left = (event.clientX - offsetX) + 'px';
+    updateSpaceForm.style.top = (event.clientY - offsetY) + 'px';
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  isDragging = false;
+  updateSpaceForm.style.cursor = 'grab';
 });
 
 // Functions
@@ -230,13 +236,13 @@ async function createAndZipProject() {
   const folderName = projectName.value.trim();
   const assetsFolder = zip.folder(`${folderName}/assets`);
 
-  // Build index.html
-  let content = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <title>${folderName}</title>
-   <style>
+  // Build index.html content
+ let content = `
+<!DOCTYPE html>
+<html>
+<head>
+  <title>${folderName}</title>
+  <style>
     /* General Reset */
     * {
       margin: 0;
@@ -258,13 +264,21 @@ async function createAndZipProject() {
       color: #333;
     }
 
-    /* Image and map */
+    /* Image container to center */
+    .image-container {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+
+    /* Image Styling */
     img {
-      max-width: 100%;
+      width: 80%; /* make bigger than default */
+      max-width: 1200px; /* don't exceed this size */
       height: auto;
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      margin-bottom: 20px;
+      display: block;
     }
 
     /* Floor map interaction areas */
@@ -290,7 +304,7 @@ async function createAndZipProject() {
       border-radius: 8px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       max-width: 400px;
-      margin-top: 30px;
+      margin: 30px auto; /* center form horizontally */
       position: relative;
       transition: opacity 0.3s ease-in-out;
     }
@@ -350,101 +364,93 @@ async function createAndZipProject() {
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
-    /* Image Styling */
-    img {
-      display: block;
-      max-width: 100%;
-      height: auto;
-      border-radius: 8px;
-      margin-top: 15px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
-
     /* Responsive Design */
     @media (max-width: 768px) {
       form {
         width: 90%;
       }
 
+      img {
+        width: 100%; /* scale down on small screens */
+      }
+
       iframe {
         height: 300px;
+        width: 100%;
       }
     }
-
   </style>
-    </head>
-    <body>
-      <img src="./assets/${imageName}" alt="Floor Plan" usemap="#floormap">
-      <map name="floormap">
-        ${floorSpaces.map(fs =>
-          `<area alt="${fs.name}" title="${fs.name}" coords="${fs.coordinates.minX},${fs.coordinates.minY},${fs.coordinates.maxX},${fs.coordinates.maxY}" shape="${fs.geometry}" data-name="${fs.id}">`
-        ).join("\n")}
-      </map>
+</head>
+<body>
+  <div class="image-container">
+    <img src="./assets/${imageName}" alt="Floor Plan" usemap="#floormap">
+  </div>
+  <map name="floormap">
+    ${floorSpaces.map(fs =>
+      `<area alt="${fs.name}" title="${fs.name}" coords="${fs.coordinates.minX},${fs.coordinates.minY},${fs.coordinates.maxX},${fs.coordinates.maxY}" shape="${fs.geometry}" data-id="${fs.id}">`
+    ).join("\n")}
+  </map>
 
-      <div>
-        <form id="floor-space-form" hidden>
-          <button type="button" id="close-form">X</button>
-          <label for="space-name">Name of Floor Space:</label>
-          <input type="text" id="space-name" name="space-name" />
-          <label for="space-desc">Description:</label>
-          <textarea id="space-desc" name="space-desc"></textarea>
-          <label for="space-files">Upload Files:</label>
-          <input type="file" id="space-files" name="space-files" />
-        </form>
-      </div>
+  <form id="floor-space-form" hidden>
+    <button type="button" id="close-form">X</button>
+    <label for="space-name">Name of Floor Space:</label>
+    <input type="text" id="space-name" name="space-name" />
+    <label for="space-desc">Description:</label>
+    <textarea id="space-desc" name="space-desc"></textarea>
+    <label for="space-files">Files:</label>
+    <div id="misc-files"></div>
+  </form>
 
-      <script>
-        const form = document.getElementById('floor-space-form');
-        const nameField = document.getElementById('space-name');
-        const desc = document.getElementById('space-desc');
-        const files = document.getElementById('space-files');
-        const close = document.getElementById('close-form');
-        const areas = document.querySelectorAll('area');
-        const floorSpaces = ${JSON.stringify(floorSpaces)};
+  <script>
+    const form = document.getElementById('floor-space-form');
+    const nameField = document.getElementById('space-name');
+    const desc = document.getElementById('space-desc');
+    const areas = document.querySelectorAll('area');
+    const miscFiles = document.getElementById('misc-files');
 
-        close.addEventListener('click', () => (form.hidden = true));
+    const floorSpaces = ${JSON.stringify(floorSpaces)};
 
-        areas.forEach(area => {
-          area.addEventListener('click', event => {
-            event.preventDefault();
-            const fs = floorSpaces.find(f => f.id == area.dataset.name);
-            nameField.value = fs.name;
-            desc.value = fs.desc;
-            form.hidden = false;
-            const dataTransfer = new DataTransfer(); // Object used to move files
-            fs.files.forEach((file) => {
-            dataTransfer.items.add(file);
-            });
-            files.files = dataTransfer.files;
-          });
+    document.getElementById('close-form').addEventListener('click', () => form.hidden = true);
+
+    areas.forEach(area => {
+      area.addEventListener('click', event => {
+        event.preventDefault();
+        const fs = floorSpaces.find(f => f.id == area.dataset.id);
+        nameField.value = fs.name;
+        desc.value = fs.desc;
+        form.hidden = false;
+
+        miscFiles.innerHTML = ''; // Clear previous files
+
+        fs.files.forEach(f => {
+          if (f.type.startsWith('image/')) {
+            const img = document.createElement('img');
+            img.src = f.dataURL;
+            img.alt = f.name;
+            img.style.maxWidth = '200px';
+            miscFiles.appendChild(img);
+          } else if (f.type === 'application/pdf') {
+            const iframe = document.createElement('iframe');
+            iframe.src = f.dataURL;
+            iframe.width = '400';
+            iframe.height = '300';
+            miscFiles.appendChild(iframe);
+          }
         });
-      </script>
-    </body>
-    </html>
-  `;
-  /**
-   * @todo: Fix the file auto input 
-   * */ 
+      });
+    });
+  </script>
+</body>
+</html>
+`;
 
-  // Add index.html to project folder
+   // Add index.html to project folder
   zip.file(`${folderName}/index.html`, content);
 
-  // Add assets (images, etc.)
-  for (const fs of floorSpaces) {
-    for (const file of fs.files) {
-      const arrayBuffer = await file.arrayBuffer();
-      assetsFolder.file(`${fs.id}-${file.name}`, arrayBuffer);
-    }
-  }
-  //[Log] <img id="floor-plan" alt="Floor Plan: text.png" 
-  // src="data:image/png;base64,iVBOR…8F0TaPBJ0lFLMAAAAAElFTkSuQmCC" style="display: block;"> (main.js, line 297)
+  const response = await fetch(image.src);
+  const arrayBuffer = await response.arrayBuffer();
+  assetsFolder.file(imageName, arrayBuffer);
 
-  console.log(image)
-  const response = await fetch(image.src); // fetch() turns the data URL or URL into a Response
-  const arrayBuffer = await response.arrayBuffer(); // convert to binary
-  assetsFolder.file(imageName, arrayBuffer); // ✅ add binary data to the zip
-
-  // Generate ZIP
   const blob = await zip.generateAsync({ type: "blob" });
   return blob;
 }
