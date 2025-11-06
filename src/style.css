@@ -84,13 +84,12 @@ body {
   gap: 10px;
 
   position: fixed; /* <-- use fixed for easier dragging */
-  top: 100px; 
-  left: 100px; 
+  top: 100px;
+  left: 100px;
   cursor: grab;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
   z-index: 1000;
 }
-
 
 /* Distinguish the update form slightly */
 #update-space-form {

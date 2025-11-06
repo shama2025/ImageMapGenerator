@@ -33,8 +33,10 @@ let currentAnnotation = 0; // Temporary variable for storing current annotation 
 let currentCoordinates = 0; // Temporary vraiable for storing current annotation coordinates upon updating
 let newCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 }; // This is a temp object for storing the new coordinates of the floor space
 // Image map order (minX,minY,maxX,maxY)
-let imageName = '';
-let offsetX, offsetY, isDragging = false;
+let imageName = "";
+let offsetX,
+  offsetY,
+  isDragging = false;
 
 // Event listeners
 imageInput.addEventListener("change", function (event) {
@@ -117,7 +119,7 @@ updateSpaceFormCloseButton.addEventListener("click", () => {
   updateSpaceForm.hidden = true;
 });
 
-updateSpaceFormDeleteButton.addEventListener("click", async() => {
+updateSpaceFormDeleteButton.addEventListener("click", async () => {
   // This button will remove the annotation from the list and hide the update-space-form
   console.log("Deleting annotation from annotaitons");
   console.log("Pre-delete: ", floorSpaces.length);
@@ -166,43 +168,43 @@ newSpaceFormSaveButton.addEventListener("click", async () => {
   console.log("New floor spce created: ", floorSpaces);
 });
 
-  // Start dragging on mousedown
-  newSpaceForm.addEventListener('mousedown', (event) => {
+// Start dragging on mousedown
+newSpaceForm.addEventListener("mousedown", (event) => {
   isDragging = true;
   offsetX = event.clientX - newSpaceForm.getBoundingClientRect().left;
   offsetY = event.clientY - newSpaceForm.getBoundingClientRect().top;
-  newSpaceForm.style.cursor = 'grabbing';
+  newSpaceForm.style.cursor = "grabbing";
 });
 
-document.addEventListener('mousemove', (event) => {
+document.addEventListener("mousemove", (event) => {
   if (isDragging) {
-    newSpaceForm.style.left = (event.clientX - offsetX) + 'px';
-    newSpaceForm.style.top = (event.clientY - offsetY) + 'px';
+    newSpaceForm.style.left = event.clientX - offsetX + "px";
+    newSpaceForm.style.top = event.clientY - offsetY + "px";
   }
 });
 
-document.addEventListener('mouseup', () => {
+document.addEventListener("mouseup", () => {
   isDragging = false;
-  newSpaceForm.style.cursor = 'grab';
+  newSpaceForm.style.cursor = "grab";
 });
 
-updateSpaceForm.addEventListener('mousedown', (event) => {
+updateSpaceForm.addEventListener("mousedown", (event) => {
   isDragging = true;
   offsetX = event.clientX - updateSpaceForm.getBoundingClientRect().left;
   offsetY = event.clientY - updateSpaceForm.getBoundingClientRect().top;
-  updateSpaceForm.style.cursor = 'grabbing';
+  updateSpaceForm.style.cursor = "grabbing";
 });
 
-document.addEventListener('mousemove', (event) => {
+document.addEventListener("mousemove", (event) => {
   if (isDragging) {
-    updateSpaceForm.style.left = (event.clientX - offsetX) + 'px';
-    updateSpaceForm.style.top = (event.clientY - offsetY) + 'px';
+    updateSpaceForm.style.left = event.clientX - offsetX + "px";
+    updateSpaceForm.style.top = event.clientY - offsetY + "px";
   }
 });
 
-document.addEventListener('mouseup', () => {
+document.addEventListener("mouseup", () => {
   isDragging = false;
-  updateSpaceForm.style.cursor = 'grab';
+  updateSpaceForm.style.cursor = "grab";
 });
 
 // Functions
@@ -237,7 +239,7 @@ async function createAndZipProject() {
   const assetsFolder = zip.folder(`${folderName}/assets`);
 
   // Build index.html content
- let content = `
+  let content = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -386,9 +388,12 @@ async function createAndZipProject() {
     <img src="./assets/${imageName}" alt="Floor Plan" usemap="#floormap">
   </div>
   <map name="floormap">
-    ${floorSpaces.map(fs =>
-      `<area alt="${fs.name}" title="${fs.name}" coords="${fs.coordinates.minX},${fs.coordinates.minY},${fs.coordinates.maxX},${fs.coordinates.maxY}" shape="${fs.geometry}" data-id="${fs.id}">`
-    ).join("\n")}
+    ${floorSpaces
+      .map(
+        (fs) =>
+          `<area alt="${fs.name}" title="${fs.name}" coords="${fs.coordinates.minX},${fs.coordinates.minY},${fs.coordinates.maxX},${fs.coordinates.maxY}" shape="${fs.geometry}" data-id="${fs.id}">`,
+      )
+      .join("\n")}
   </map>
 
   <form id="floor-space-form" hidden>
@@ -444,7 +449,7 @@ async function createAndZipProject() {
 </html>
 `;
 
-   // Add index.html to project folder
+  // Add index.html to project folder
   zip.file(`${folderName}/index.html`, content);
 
   const response = await fetch(image.src);
