@@ -37,6 +37,7 @@ let imageName = "";
 let offsetX,
   offsetY,
   isDragging = false;
+  let imageDataURL = ''; // The URL for the dataUrl to Blob conversion
 
 // Event listeners
 imageInput.addEventListener("change", function (event) {
@@ -49,6 +50,7 @@ imageInput.addEventListener("change", function (event) {
       console.log(e);
       image.alt = `Floor Plan: ${file.name}`;
       image.src = e.target.result;
+      imageDataURL = e.target.result;
       imageName = file.name;
     };
 
@@ -208,22 +210,6 @@ document.addEventListener("mouseup", () => {
   updateSpaceForm.style.cursor = "grab";
 });
 
-// Functions
-
-function createDirectories() {
-  // Creates the necessary folders to write to
-  const folderName = projectName.value;
-  const assets = `./${folderName}/assets`;
-
-  // Create directories if they don't exist
-  for (const dir of [folderName, assets]) {
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-      console.log(`Created: ${dir}`);
-    }
-  }
-}
-
 submitProject.addEventListener("click", async () => {
   console.log("Submit Clicked!");
 
@@ -233,6 +219,8 @@ submitProject.addEventListener("click", async () => {
   // Trigger download
   downloadProjectFolder(zipBlob, `${projectName.value}.zip`);
 });
+
+// Functions
 
 async function createAndZipProject() {
   const zip = new JSZip();
@@ -275,10 +263,11 @@ async function createAndZipProject() {
     }
 
     /* Image Styling */
-    floor-plan {
-      width: 70%; /* make bigger than default */
-      max-width: 1000px;
-      height: 1000px;
+    #floor-plan {
+      pointer-events: auto;
+      / *width: 70%; /* make bigger than default */
+      /* max-width: 1000px;*/
+      /* height: 1000px;*/
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       display: block;
@@ -286,7 +275,9 @@ async function createAndZipProject() {
 
     /* Floor map interaction areas */
     area {
+      display: block;
       outline: none;
+      pointer: cursor;
     }
 
     /* Output Area */
@@ -473,12 +464,12 @@ document.addEventListener("mouseup", () => {
 </html>
 `;
 
+  // Add main image to assets
+  const imageBlob = dataURLToBlob(imageDataURL); 
+  assetsFolder.file(imageName,imageBlob);
+
   // Add index.html to project folder
   zip.file(`${folderName}/index.html`, content);
-
-  if (uploadedFile) {
-    assetsFolder.file(imageName, uploadedFile);
-  }
 
   // Generate the ZIP file
   const blob = await zip.generateAsync({ type: "blob" });
@@ -512,4 +503,16 @@ function coordinatesAreEqual(a, b) {
     a.maxX === b.maxX &&
     a.maxY === b.maxY
   );
+}
+
+function dataURLToBlob(dataURL) {
+  const [header, base64] = dataURL.split(",");
+  const mime = header.match(/:(.*?);/)[1];
+  const binary = atob(base64);
+  const len = binary.length;
+  const u8arr = new Uint8Array(len);
+  for (let i = 0; i < len; i++) {
+    u8arr[i] = binary.charCodeAt(i);
+  }
+  return new Blob([u8arr], { type: mime });
 }
