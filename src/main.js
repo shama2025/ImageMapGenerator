@@ -179,7 +179,7 @@ newSpaceFormSaveButton.addEventListener("click", async () => {
     // Have an attribute that is a list of the files names
     fileNames: fileNames,
   };
-  console.log(floorSpace);
+  annotationCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 }; // Resets the coordinates
   floorSpaces.push(floorSpace);
   newSpaceForm.hidden = true;
   console.log("New floor spce created: ", floorSpaces);
