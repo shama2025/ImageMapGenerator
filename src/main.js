@@ -409,16 +409,7 @@ async function createAndZipProject() {
   <textarea id="space-desc" readonly></textarea>
   <label for="space-files">Files:</label>
   <div id="misc-files">
-    ${floorSpaces
-      .map((fs) =>
-        fs.fileNames
-          .map(
-            (fileName) =>
-              `<a href="./assets/${fs.id}-${fileName}" target="_blank">${fileName}</a>`,
-          )
-          .join("\n"),
-      )
-      .join("\n")}
+      <ul id="misc-files-list"></ul>
   </div>
 </form>
 
@@ -427,20 +418,33 @@ async function createAndZipProject() {
   const nameField = document.getElementById('space-name');
   const desc = document.getElementById('space-desc');
   const areas = document.querySelectorAll('area');
-  const miscFiles = document.getElementById('misc-files');
+  const miscFilesList = document.getElementById('misc-files-list');
 
   // floorSpaces object passed from JS
   const floorSpaces = ${JSON.stringify(floorSpaces)};
-
   document.getElementById('close-form').addEventListener('click', () => form.hidden = true);
 
   areas.forEach(area => {
     area.addEventListener('click', event => {
       event.preventDefault();
+
+      // Clear List of href
+      miscFilesList.innerHTML = '';
       const fs = floorSpaces.find(f => f.id == area.dataset.id);
       nameField.innerText = fs.name;
       desc.value = fs.desc;
       form.hidden = false;
+
+      // Create a list of clickable files
+      fs.fileNames.forEach(name =>{
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = "./assets/"+fs.id+"-"+name;
+        a.target="_blank";
+        a.textContent = name;
+        li.appendChild(a);
+        miscFilesList.appendChild(li);
+      });
     });
   });
 
