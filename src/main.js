@@ -390,8 +390,9 @@ async function createAndZipProject() {
   </style>
 </head>
 <body>
+  <input type="file" id="new-image">
   <div class="image-container">
-    <img src="./assets/${imageName}" alt="Floor Plan" usemap="#floormap" id="floor-plan">
+    <img usemap="#floormap" id="floor-plan" alt="Floor Plan">
   </div>
   <map name="floormap">
     ${floorSpaces
@@ -419,10 +420,16 @@ async function createAndZipProject() {
   const desc = document.getElementById('space-desc');
   const areas = document.querySelectorAll('area');
   const miscFilesList = document.getElementById('misc-files-list');
+  const newImageMap = document.getElementById('new-image');
+  const floorPlanImage = document.getElementById('floor-plan')
 
   // floorSpaces object passed from JS
   const floorSpaces = ${JSON.stringify(floorSpaces)};
   document.getElementById('close-form').addEventListener('click', () => form.hidden = true);
+
+  window.addEventListener("load", (event) =>{
+      floorPlanImage.src = "./assets/" + "${imageName}";
+  })
 
   areas.forEach(area => {
     area.addEventListener('click', event => {
@@ -469,6 +476,21 @@ async function createAndZipProject() {
     isDragging = false;
     form.style.cursor = "grab";
   });
+
+  newImageMap.addEventListener("change", function (event) {
+  const file = event.target.files[0];
+
+  if (file) {
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      console.log(e);
+      floorPlanImage.src = e.target.result;
+    };
+
+    reader.readAsDataURL(file);
+  }
+});
 </script>
 </body>
 </html>
