@@ -155,7 +155,6 @@ updateSpaceFormSaveButton.addEventListener("click", async () => {
         ? currentCoordinates
         : newCoordinates,
       fileNames: fileNames,
-      color: data.get("color"),
     };
   }
   updateSpaceForm.hidden = true;
@@ -180,7 +179,6 @@ newSpaceFormSaveButton.addEventListener("click", async () => {
     geometry: "rect", // The type of shape the annotation takes (Rectangle, Polygon, etc...)
     // Have an attribute that is a list of the files names
     fileNames: fileNames,
-    color: data.get("color"), // This is the color that goes with the annotation
   };
   annotationCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 }; // Resets the coordinates
   floorSpaces.push(floorSpace);
@@ -272,25 +270,14 @@ async function createAndZipProject() {
       color: #333;
     }
 
+    /* Image container to center */
     .image-container {
-      position: relative;
-      display: inline-block;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
     }
 
-    #floor-plan {
-      display: block;
-      position: relative;
-      z-index: 1;
-    }
-
-    .link {
-      position: absolute;
-      z-index: 2;
-      display: block;
-      cursor: pointer;
-    }
-
-    /* Image Styling 
+    /* Image Styling */
     #floor-plan {
       pointer-events: auto;
       / *width: 70%; /* make bigger than default */
@@ -299,7 +286,7 @@ async function createAndZipProject() {
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       display: block;
-    }*/
+    }
 
     /* Floor map interaction areas */
     area {
@@ -404,31 +391,17 @@ async function createAndZipProject() {
   </style>
 </head>
 <body>
-<input type="file" id="new-image">  
-<div class="image-container-wrapper">
+  <input type="file" id="new-image">
   <div class="image-container">
     <img id="floor-plan" alt="Floor Plan">
     ${floorSpaces
       .map(
-        (fs) => `
-      <a class="link"
-         data-id="${fs.id}"
-         style="
-           top:${fs.coordinates.minY}px;
-           left:${fs.coordinates.minX}px;
-           width:${fs.coordinates.maxX - fs.coordinates.minX}px;
-           height:${fs.coordinates.maxY - fs.coordinates.minY}px;
-           background-color:${fs.color}33;
-           text-decoration: none;
-         ">
-         ${fs.name}
-      </a>
-    `,
+        (fs) =>
+          `<area alt="${fs.name}" title="${fs.name}" coords="${fs.coordinates.minX},${fs.coordinates.minY},${fs.coordinates.maxX},${fs.coordinates.maxY}" shape="${fs.geometry}" data-id="${fs.id}">`,
       )
-      .join("")}
-  </div>
-</div>
-</div>
+      .join("\n")}
+  </map>
+
 <form id="floor-space-form" hidden>
   <button type="button" id="close-form">X</button>
   <h3 id="space-name"></h3>
