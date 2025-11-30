@@ -13,6 +13,9 @@
   },
   "dependencies": {
     "@annotorious/annotorious": "^3.7.12",
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
     "jszip": "^3.10.1",
     "prettier": "^3.6.2"
   }
