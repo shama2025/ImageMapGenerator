@@ -1,6 +1,7 @@
 import { createImageAnnotator } from "@annotorious/annotorious";
 import "@annotorious/annotorious/annotorious.css";
 import JSZip from "jszip";
+import { Filesystem, Directory, Encoding, FilesystemDirectory} from '@capacitor/filesystem';
 
 // DOM variables
 const imageInput = document.getElementById("image-input");
@@ -8,15 +9,9 @@ const image = document.getElementById("floor-plan");
 const newSpaceForm = document.getElementById("new-space-form");
 const newSpaceFormCloseButton = document.getElementById("new-space-close-btn");
 const updateSpaceForm = document.getElementById("update-space-form");
-const updateSpaceFormCloseButton = document.getElementById(
-  "update-space-close-btn",
-);
-const updateSpaceFormDeleteButton = document.getElementById(
-  "update-space-delete-btn",
-);
-const updateSpaceFormSaveButton = document.getElementById(
-  "update-space-save-btn",
-);
+const updateSpaceFormCloseButton = document.getElementById("update-space-close-btn");
+const updateSpaceFormDeleteButton = document.getElementById("update-space-delete-btn");
+const updateSpaceFormSaveButton = document.getElementById("update-space-save-btn");
 const updateSpaceFormNameInput = document.getElementById("update-space-name");
 const updateSpaceFormDescInput = document.getElementById("update-space-desc");
 const updateSpaceFormFilesInput = document.getElementById("update-space-files");
@@ -25,169 +20,124 @@ const projectName = document.getElementById("dir-name");
 const submitProject = document.getElementById("submit-floor-plan");
 
 // Utility Variables
-const anno = createImageAnnotator(image); // Create Annotorious instance
-let floorSpaces = []; // List of floorSpace objects
-let annotationID = 0; // This is the temp variable for the annotations unique id upon creation
-let annotationCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 }; // This is the temp object containig the bounds of the annotation upon creation
-let currentAnnotation = 0; // Temporary variable for storing current annotation ID upon updating
-let currentCoordinates = 0; // Temporary vraiable for storing current annotation coordinates upon updating
-let newCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 }; // This is a temp object for storing the new coordinates of the floor space
-// Image map order (minX,minY,maxX,maxY)
+const anno = createImageAnnotator(image);
+let floorSpaces = [];
+let annotationID = 0;
+let annotationCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
+let currentAnnotation = 0;
+let currentCoordinates = 0;
+let newCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
 let imageName = "";
-let offsetX,
-  offsetY,
-  isDragging = false;
-let imageDataURL = ""; // The URL for the dataUrl to Blob conversion
+let imageDataURL = "";
+let offsetX = 0;
+let offsetY = 0;
+let isDragging = false;
+let deviceType = '';
 
-// Event listeners
-imageInput.addEventListener("change", function (event) {
-  const file = event.target.files[0];
-
-  if (file) {
-    const reader = new FileReader();
-
-    reader.onload = function (e) {
-      console.log(e);
-      image.alt = `Floor Plan: ${file.name}`;
-      image.src = e.target.result;
-      imageDataURL = e.target.result;
-      imageName = file.name;
-    };
-
-    reader.readAsDataURL(file);
-  }
-});
-
+// Annotorious Setup
 window.addEventListener("DOMContentLoaded", () => {
   if (!image) {
     console.error("Image not found!");
     return;
   }
 
-  // Creates the annotation
   anno.on("createAnnotation", (a) => {
-    // When users creates annotation saves the ID and coordinates for later use
     newSpaceForm.hidden = false;
     annotationID = a.id;
-    annotationCoordinates.maxX =
-      a.target.selector.geometry.bounds.maxX.toFixed(2);
-    annotationCoordinates.maxY =
-      a.target.selector.geometry.bounds.maxY.toFixed(2);
-    annotationCoordinates.minX =
-      a.target.selector.geometry.bounds.minX.toFixed(2);
-    annotationCoordinates.minY =
-      a.target.selector.geometry.bounds.minY.toFixed(2);
+
+    annotationCoordinates.maxX = a.target.selector.geometry.bounds.maxX.toFixed(2);
+    annotationCoordinates.maxY = a.target.selector.geometry.bounds.maxY.toFixed(2);
+    annotationCoordinates.minX = a.target.selector.geometry.bounds.minX.toFixed(2);
+    annotationCoordinates.minY = a.target.selector.geometry.bounds.minY.toFixed(2);
   });
 
   anno.on("updateAnnotation", (a) => {
-    // When user wants to update the annotation, this will auto fill the form with the current annotation
-    // Get the current floor space by ID
     currentAnnotation = a.id;
     const currentFloorSpace = findFloorPlan(currentAnnotation);
-    // Save the current floor space coordinates in case the change was accidental
     currentCoordinates = currentFloorSpace.coordinates;
-    // Get the new coordinates in case of submit
+
     newCoordinates.maxX = a.target.selector.geometry.bounds.maxX.toFixed(2);
     newCoordinates.maxY = a.target.selector.geometry.bounds.maxY.toFixed(2);
     newCoordinates.minX = a.target.selector.geometry.bounds.minX.toFixed(2);
     newCoordinates.minY = a.target.selector.geometry.bounds.minY.toFixed(2);
-    // Auto fill the form with the current floor space
+
     updateSpaceFormDescInput.value = currentFloorSpace.desc;
     updateSpaceFormNameInput.value = currentFloorSpace.name;
-    // Add the files to the form
+
     if (currentFloorSpace.files.length === 0) {
       updateSpaceFormFilesInput.files = "";
     } else {
-      const dataTransfer = new DataTransfer(); // Object used to move files
-      currentFloorSpace.files.forEach((file) => {
-        dataTransfer.items.add(file);
-      });
-      console.log(dataTransfer.files);
+      const dataTransfer = new DataTransfer();
+      currentFloorSpace.files.forEach((file) => dataTransfer.items.add(file));
       updateSpaceFormFilesInput.files = dataTransfer.files;
     }
+
     updateSpaceForm.hidden = false;
   });
 });
 
-// Hides the new space form popup
+// Event Listeners
+
+window.addEventListener("load", (async)=>{
+  deviceType = detectDeviceType()
+})
+
 newSpaceFormCloseButton.addEventListener("click", () => {
-  console.log("Close new space popup");
   newSpaceForm.hidden = true;
 });
 
-// Hides the update space form popup
 updateSpaceFormCloseButton.addEventListener("click", () => {
-  console.log("Close update space popup");
   updateSpaceForm.hidden = true;
 });
 
 updateSpaceFormDeleteButton.addEventListener("click", async () => {
-  // This button will remove the annotation from the list and hide the update-space-form
-  console.log("Deleting annotation from annotaitons");
-  console.log("Pre-delete: ", floorSpaces.length);
   const floorPlan = findFloorPlan(currentAnnotation);
-  console.log(floorPlan);
   anno.removeAnnotation(floorPlan.id);
-  floorSpaces.pop(floorPlan);
+  floorSpaces = floorSpaces.filter(fs => fs.id !== floorPlan.id);
   updateSpaceForm.hidden = true;
-  console.log("Post-delete", floorSpaces.length);
 });
 
 updateSpaceFormSaveButton.addEventListener("click", async () => {
-  // This button will update any changes made to the annotation object
-  // Remove first before updating
   const data = new FormData(updateSpaceForm);
-  const floorPlan = findFloorPlan(currentAnnotation);
   const index = floorSpaces.findIndex((f) => f.id === currentAnnotation);
   const files = data.getAll("files");
-  let fileNames = [];
-  files.forEach((file) => {
-    fileNames.push(file.name);
-  });
+
   if (index !== -1) {
     floorSpaces[index] = {
       ...floorSpaces[index],
       name: data.get("name"),
       desc: data.get("desc"),
-      files: files,
-      coordinates: coordinatesAreEqual(newCoordinates, currentCoordinates)
-        ? currentCoordinates
-        : newCoordinates,
-      fileNames: fileNames,
+      files,
+      coordinates: coordinatesAreEqual(newCoordinates, currentCoordinates) ? currentCoordinates : newCoordinates,
+      fileNames: files.map(f => f.name),
       color: data.get("color"),
     };
   }
+
   updateSpaceForm.hidden = true;
-  console.log("Updated Floor space", floorSpaces);
 });
 
 newSpaceFormSaveButton.addEventListener("click", async () => {
-  // This button will push the floorSpace object to the list and hide the newSpace Form
   const data = new FormData(newSpaceForm);
   const files = data.getAll("files");
-  let fileNames = [];
-  files.forEach((file) => {
-    fileNames.push(file.name);
-  });
+
   const floorSpace = {
-    // Object designed to hold data regarding all spaces on a given floor
-    id: annotationID, // ID of the mapping (this is found from the annotation object)
-    name: data.get("name"), // The name of the floor space
-    desc: data.get("desc"), // Any relevant text regarding the floor space
-    files: files, // This is going to be a list file paths that points to an assets folder in the output
-    coordinates: annotationCoordinates, // Also found with the annotation object, used to help create the image map element
-    geometry: "rect", // The type of shape the annotation takes (Rectangle, Polygon, etc...)
-    // Have an attribute that is a list of the files names
-    fileNames: fileNames,
-    color: data.get("color"), // This is the color that goes with the annotation
+    id: annotationID,
+    name: data.get("name"),
+    desc: data.get("desc"),
+    files,
+    coordinates: annotationCoordinates,
+    geometry: "rect",
+    fileNames: files.map(f => f.name),
+    color: data.get("color"),
   };
-  annotationCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 }; // Resets the coordinates
+
+  annotationCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
   floorSpaces.push(floorSpace);
   newSpaceForm.hidden = true;
-  console.log("New floor spce created: ", floorSpaces);
 });
 
-// Start dragging on mousedown
+// Dragging Forms
 newSpaceForm.addEventListener("mousedown", (event) => {
   isDragging = true;
   offsetX = event.clientX - newSpaceForm.getBoundingClientRect().left;
@@ -226,25 +176,51 @@ document.addEventListener("mouseup", () => {
   updateSpaceForm.style.cursor = "grab";
 });
 
-submitProject.addEventListener("click", async () => {
-  console.log("Submit Clicked!");
+imageInput.addEventListener("change", function (event) {
+  const file = event.target.files[0];
 
-  // Generate project files and zip
-  const zipBlob = await createAndZipProject();
+  if (file) {
+    const reader = new FileReader();
 
-  // Trigger download
-  downloadProjectFolder(zipBlob, `${projectName.value}.zip`);
+    reader.onload = function (e) {
+      image.alt = `Floor Plan: ${file.name}`;
+      image.src = e.target.result;
+      imageDataURL = e.target.result;
+      imageName = file.name;
+    };
+
+    reader.readAsDataURL(file);
+  }
 });
 
-// Functions
+submitProject.addEventListener("click", async () => {
+  const zipBlob = await createAndZipProject();
+  if(deviceType == 'Mobile'){
+    // Convert to base64
+    const base64 = await blobToBase64(zipBlob);
+    downloadMobilePorjectFolder(base64);
+  }else{
+  downloadProjectFolder(zipBlob, `${projectName.value.trim()}.zip`);
+  }
+});
 
+// Utility Functions
 async function createAndZipProject() {
   const zip = new JSZip();
   const folderName = projectName.value.trim();
   const assetsFolder = zip.folder(`${folderName}/assets`);
 
-  // Build index.html content
-  let content = `
+  const imageBlob = dataURLToBlob(imageDataURL);
+  assetsFolder.file(imageName, imageBlob);
+
+  floorSpaces.forEach(fs => {
+    fs.files.forEach(file => {
+      assetsFolder.file(`${fs.id}-${file.name}`, file);
+    });
+  });
+
+  // Generate HTML content for ZIP
+let content = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -271,25 +247,14 @@ async function createAndZipProject() {
       color: #333;
     }
 
+    /* Image container to center */
     .image-container {
-      position: relative;
-      display: inline-block;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
     }
 
-    #floor-plan {
-      display: block;
-      position: relative;
-      z-index: 1;
-    }
-
-    .link {
-      position: absolute;
-      z-index: 2;
-      display: block;
-      cursor: pointer;
-    }
-
-    /* Image Styling 
+    /* Image Styling */
     #floor-plan {
       pointer-events: auto;
       / *width: 70%; /* make bigger than default */
@@ -298,7 +263,7 @@ async function createAndZipProject() {
       border-radius: 8px;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
       display: block;
-    }*/
+    }
 
     /* Floor map interaction areas */
     area {
@@ -403,31 +368,46 @@ async function createAndZipProject() {
   </style>
 </head>
 <body>
-<input type="file" id="new-image">  
-<div class="image-container-wrapper">
-  <div class="image-container">
-    <img usemap="#floormap" id="floor-plan" alt="Floor Plan">
-    ${floorSpaces
-      .map(
-        (fs) => `
-      <a class="link"
-         data-id="${fs.id}"
-         style="
-           top:${fs.coordinates.minY}px;
-           left:${fs.coordinates.minX}px;
-           width:${fs.coordinates.maxX - fs.coordinates.minX}px;
-           height:${fs.coordinates.maxY - fs.coordinates.minY}px;
-           background-color:${fs.color}33;
-           text-decoration: none;
-         ">
-         ${fs.name}
-      </a>
-    `,
-      )
-      .join("")}
-  </div>
+ <input type="file" id="new-image">
+
+<div class="image-container" style="position: relative; display: inline-block;">
+  <img id="floor-plan" alt="Floor Plan">
+
+  ${floorSpaces
+    .map((fs) => {
+      const { minX, minY, maxX, maxY } = fs.coordinates;
+      const width = maxX - minX;
+      const height = maxY - minY;
+
+      return `
+        <a
+          data-id="${fs.id}"
+          title="${fs.name}"
+          style="
+            position: absolute;
+            left: ${minX}px;
+            top: ${minY}px;
+            width: ${width}px;
+            height: ${height}px;
+            background: ${fs.color};
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 14px;
+            pointer-events: auto;
+            opacity: 0.8;
+          "
+        >
+          ${fs.name}
+        </a>
+      `;
+    })
+    .join("\n")}
 </div>
-</div>
+
+
 <form id="floor-space-form" hidden>
   <button type="button" id="close-form">X</button>
   <h3 id="space-name"></h3>
@@ -443,19 +423,19 @@ async function createAndZipProject() {
   const form = document.getElementById('floor-space-form');
   const nameField = document.getElementById('space-name');
   const desc = document.getElementById('space-desc');
- // const areas = document.querySelectorAll('area');
-  const areas = document.querySelectorAll('.link');
+  const areas = document.querySelectorAll('a');
   const miscFilesList = document.getElementById('misc-files-list');
   const newImageMap = document.getElementById('new-image');
-  const floorPlanImage = document.getElementById('floor-plan')
+  const floorPlanImage = document.getElementById('floor-plan');
 
   // floorSpaces object passed from JS
   const floorSpaces = ${JSON.stringify(floorSpaces)};
   document.getElementById('close-form').addEventListener('click', () => form.hidden = true);
 
   window.addEventListener("load", (event) =>{
-      floorPlanImage.src = "./assets/" + "${imageName}";
-  })
+      floorPlanImage.src = "assets/" + "${imageName}";
+  }) 
+      //chrome://inspect/#devices used for testing app
 
   areas.forEach(area => {
     area.addEventListener('click', event => {
@@ -518,27 +498,11 @@ async function createAndZipProject() {
   }
 });
 </script>
-</body>
-</html>
-`;
+`
 
-  // Add main image to assets
-  const imageBlob = dataURLToBlob(imageDataURL);
-  assetsFolder.file(imageName, imageBlob);
-
-  // Add floorplan files to assets folder
-  floorSpaces.forEach((floorSpace) => {
-    floorSpace.files.forEach((file) => {
-      assetsFolder.file(`${floorSpace.id}-${file.name}`, file);
-    });
-  });
-
-  // Add index.html to project folder
   zip.file(`${folderName}/index.html`, content);
 
-  // Generate the ZIP file
-  const blob = await zip.generateAsync({ type: "blob" });
-  return blob;
+  return await zip.generateAsync({ type: "blob" });
 }
 
 function downloadProjectFolder(blob, filename) {
@@ -550,18 +514,21 @@ function downloadProjectFolder(blob, filename) {
   URL.revokeObjectURL(url);
 }
 
+function dataURLToBlob(dataURL) {
+  const [header, base64] = dataURL.split(",");
+  const mime = header.match(/:(.*?);/)[1];
+  const binary = atob(base64);
+  const len = binary.length;
+  const u8arr = new Uint8Array(len);
+  for (let i = 0; i < len; i++) u8arr[i] = binary.charCodeAt(i);
+  return new Blob([u8arr], { type: mime });
+}
+
 function findFloorPlan(id) {
-  // Finds the floor plan by ID
-  const currentAnnotation = id;
-  console.log(currentAnnotation);
-  const currentFloorSpace = floorSpaces.find(
-    (floorSpace) => floorSpace.id == currentAnnotation,
-  );
-  return currentFloorSpace;
+  return floorSpaces.find(fs => fs.id == id);
 }
 
 function coordinatesAreEqual(a, b) {
-  // Compares the two cooradinates
   return (
     a.minX === b.minX &&
     a.minY === b.minY &&
@@ -570,14 +537,32 @@ function coordinatesAreEqual(a, b) {
   );
 }
 
-function dataURLToBlob(dataURL) {
-  const [header, base64] = dataURL.split(",");
-  const mime = header.match(/:(.*?);/)[1];
-  const binary = atob(base64);
-  const len = binary.length;
-  const u8arr = new Uint8Array(len);
-  for (let i = 0; i < len; i++) {
-    u8arr[i] = binary.charCodeAt(i);
+function detectDeviceType() {
+  const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+
+  // Regular expression to check for common mobile device identifiers
+  if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)) {
+    return 'Mobile';
+  } else {
+    return 'Desktop';
   }
-  return new Blob([u8arr], { type: mime });
 }
+
+async function blobToBase64(blob){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve((reader.result).split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function downloadMobilePorjectFolder(project){
+  await Filesystem.writeFile({
+    path: `${projectName.value.trim()}.zip`,
+    data: project,
+    directory: Directory.Documents,
+    recursive: true,
+    encoding: Encoding.BASE64,
+  });
+};

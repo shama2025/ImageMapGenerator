@@ -13,6 +13,12 @@
   },
   "dependencies": {
     "@annotorious/annotorious": "^3.7.12",
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
+    "@capacitor/filesystem": "^7.1.5",
+    "@capacitor/ios": "^7.4.4",
+    "@capawesome/capacitor-file-picker": "^7.2.0",
     "jszip": "^3.10.1",
     "prettier": "^3.6.2"
   }
