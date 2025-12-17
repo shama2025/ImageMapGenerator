@@ -1,7 +1,8 @@
 import { createImageAnnotator } from "@annotorious/annotorious";
 import "@annotorious/annotorious/annotorious.css";
 import JSZip from "jszip";
-import { Filesystem, Directory, Encoding, FilesystemDirectory} from '@capacitor/filesystem';
+import { Filesystem, Directory, Encoding } from "@capacitor/filesystem";
+import { Share } from "@capacitor/share";
 
 // DOM variables
 const imageInput = document.getElementById("image-input");
@@ -9,9 +10,15 @@ const image = document.getElementById("floor-plan");
 const newSpaceForm = document.getElementById("new-space-form");
 const newSpaceFormCloseButton = document.getElementById("new-space-close-btn");
 const updateSpaceForm = document.getElementById("update-space-form");
-const updateSpaceFormCloseButton = document.getElementById("update-space-close-btn");
-const updateSpaceFormDeleteButton = document.getElementById("update-space-delete-btn");
-const updateSpaceFormSaveButton = document.getElementById("update-space-save-btn");
+const updateSpaceFormCloseButton = document.getElementById(
+  "update-space-close-btn",
+);
+const updateSpaceFormDeleteButton = document.getElementById(
+  "update-space-delete-btn",
+);
+const updateSpaceFormSaveButton = document.getElementById(
+  "update-space-save-btn",
+);
 const updateSpaceFormNameInput = document.getElementById("update-space-name");
 const updateSpaceFormDescInput = document.getElementById("update-space-desc");
 const updateSpaceFormFilesInput = document.getElementById("update-space-files");
@@ -32,7 +39,7 @@ let imageDataURL = "";
 let offsetX = 0;
 let offsetY = 0;
 let isDragging = false;
-let deviceType = '';
+let deviceType = "";
 
 // Annotorious Setup
 window.addEventListener("DOMContentLoaded", () => {
@@ -45,10 +52,14 @@ window.addEventListener("DOMContentLoaded", () => {
     newSpaceForm.hidden = false;
     annotationID = a.id;
 
-    annotationCoordinates.maxX = a.target.selector.geometry.bounds.maxX.toFixed(2);
-    annotationCoordinates.maxY = a.target.selector.geometry.bounds.maxY.toFixed(2);
-    annotationCoordinates.minX = a.target.selector.geometry.bounds.minX.toFixed(2);
-    annotationCoordinates.minY = a.target.selector.geometry.bounds.minY.toFixed(2);
+    annotationCoordinates.maxX =
+      a.target.selector.geometry.bounds.maxX.toFixed(2);
+    annotationCoordinates.maxY =
+      a.target.selector.geometry.bounds.maxY.toFixed(2);
+    annotationCoordinates.minX =
+      a.target.selector.geometry.bounds.minX.toFixed(2);
+    annotationCoordinates.minY =
+      a.target.selector.geometry.bounds.minY.toFixed(2);
   });
 
   anno.on("updateAnnotation", (a) => {
@@ -78,9 +89,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
 // Event Listeners
 
-window.addEventListener("load", (async)=>{
-  deviceType = detectDeviceType()
-})
+window.addEventListener("load", (async) => {
+  deviceType = detectDeviceType();
+});
 
 newSpaceFormCloseButton.addEventListener("click", () => {
   newSpaceForm.hidden = true;
@@ -93,7 +104,7 @@ updateSpaceFormCloseButton.addEventListener("click", () => {
 updateSpaceFormDeleteButton.addEventListener("click", async () => {
   const floorPlan = findFloorPlan(currentAnnotation);
   anno.removeAnnotation(floorPlan.id);
-  floorSpaces = floorSpaces.filter(fs => fs.id !== floorPlan.id);
+  floorSpaces = floorSpaces.filter((fs) => fs.id !== floorPlan.id);
   updateSpaceForm.hidden = true;
 });
 
@@ -108,8 +119,10 @@ updateSpaceFormSaveButton.addEventListener("click", async () => {
       name: data.get("name"),
       desc: data.get("desc"),
       files,
-      coordinates: coordinatesAreEqual(newCoordinates, currentCoordinates) ? currentCoordinates : newCoordinates,
-      fileNames: files.map(f => f.name),
+      coordinates: coordinatesAreEqual(newCoordinates, currentCoordinates)
+        ? currentCoordinates
+        : newCoordinates,
+      fileNames: files.map((f) => f.name),
       color: data.get("color"),
     };
   }
@@ -128,7 +141,7 @@ newSpaceFormSaveButton.addEventListener("click", async () => {
     files,
     coordinates: annotationCoordinates,
     geometry: "rect",
-    fileNames: files.map(f => f.name),
+    fileNames: files.map((f) => f.name),
     color: data.get("color"),
   };
 
@@ -195,12 +208,12 @@ imageInput.addEventListener("change", function (event) {
 
 submitProject.addEventListener("click", async () => {
   const zipBlob = await createAndZipProject();
-  if(deviceType == 'Mobile'){
+  if (deviceType == "Mobile") {
     // Convert to base64
     const base64 = await blobToBase64(zipBlob);
     downloadMobilePorjectFolder(base64);
-  }else{
-  downloadProjectFolder(zipBlob, `${projectName.value.trim()}.zip`);
+  } else {
+    downloadProjectFolder(zipBlob, `${projectName.value.trim()}.zip`);
   }
 });
 
@@ -213,14 +226,14 @@ async function createAndZipProject() {
   const imageBlob = dataURLToBlob(imageDataURL);
   assetsFolder.file(imageName, imageBlob);
 
-  floorSpaces.forEach(fs => {
-    fs.files.forEach(file => {
+  floorSpaces.forEach((fs) => {
+    fs.files.forEach((file) => {
       assetsFolder.file(`${fs.id}-${file.name}`, file);
     });
   });
 
   // Generate HTML content for ZIP
-let content = `
+  let content = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -433,7 +446,7 @@ let content = `
   document.getElementById('close-form').addEventListener('click', () => form.hidden = true);
 
   window.addEventListener("load", (event) =>{
-      floorPlanImage.src = "assets/" + "${imageName}";
+      floorPlanImage.src = "./assets/" + "${imageName}";
   }) 
       //chrome://inspect/#devices used for testing app
 
@@ -498,7 +511,7 @@ let content = `
   }
 });
 </script>
-`
+`;
 
   zip.file(`${folderName}/index.html`, content);
 
@@ -525,7 +538,7 @@ function dataURLToBlob(dataURL) {
 }
 
 function findFloorPlan(id) {
-  return floorSpaces.find(fs => fs.id == id);
+  return floorSpaces.find((fs) => fs.id == id);
 }
 
 function coordinatesAreEqual(a, b) {
@@ -541,23 +554,27 @@ function detectDeviceType() {
   const userAgent = navigator.userAgent || navigator.vendor || window.opera;
 
   // Regular expression to check for common mobile device identifiers
-  if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent)) {
-    return 'Mobile';
+  if (
+    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+      userAgent,
+    )
+  ) {
+    return "Mobile";
   } else {
-    return 'Desktop';
+    return "Desktop";
   }
 }
 
-async function blobToBase64(blob){
+async function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onloadend = () => resolve((reader.result).split(',')[1]);
+    reader.onloadend = () => resolve(reader.result.split(",")[1]);
     reader.onerror = reject;
     reader.readAsDataURL(blob);
   });
 }
 
-async function downloadMobilePorjectFolder(project){
+async function downloadMobilePorjectFolder(project) {
   await Filesystem.writeFile({
     path: `${projectName.value.trim()}.zip`,
     data: project,
@@ -565,4 +582,12 @@ async function downloadMobilePorjectFolder(project){
     recursive: true,
     encoding: Encoding.BASE64,
   });
-};
+
+  // Uncomment if you want to force the user to share via email
+  // Update this so the user has the option to share
+  // Add a button that will only appear after project is saved
+  // await Share.share({
+  //   title: 'Project ZIP',
+  //   url: uri,
+  // })
+}
