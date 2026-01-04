@@ -1,6 +1,7 @@
 # Image Map Generator
 
 ## Overview
+
 Image Map Generator is a tool for creating interactive image maps. Users can:
 
 - Upload an image
@@ -28,11 +29,13 @@ The project is designed to run as a hybrid mobile application. Due to mobile pla
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js (see `.nvmrc` if present)
 - npm
 - (Optional) `make`
 
 ### Setup
+
 ```sh
 git clone <repo-url>
 cd image-map-generator

@@ -1,4 +1,6 @@
-/* Basic reset and font */
+/* =========================================
+   Base Reset
+========================================= */
 * {
   box-sizing: border-box;
   font-family: Arial, sans-serif;
@@ -6,131 +8,148 @@
 
 body {
   margin: 0;
-  padding: 0;
+  padding: 15px;
   background-color: #f5f6fa;
+
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: flex-start;
   min-height: 100vh;
+
+  /* Prevent accidental scroll bounce on mobile */
+  overscroll-behavior: none;
 }
 
-/* Inputs at the top */
+/* =========================================
+   Top Inputs
+========================================= */
 #dir-name,
 #image-input {
-  margin: 10px;
-  padding: 10px;
+  margin: 10px 0;
+  padding: 12px;
   border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 16px;
-}
+  border-radius: 8px;
 
-#dir-name {
-  width: 250px;
+  font-size: 16px;
+  width: 260px;
+  max-width: 90%;
 }
 
 #image-input {
   cursor: pointer;
 }
 
-/* Larger floor plan image, centered */
+/* =========================================
+   Floor Plan Image
+========================================= */
 #floor-plan {
-  display: block;
-  margin: 30px auto;
-  max-width: 95%;
-  max-height: 85vh;
+  margin-top: 20px;
+  max-width: 98vw;
+  max-height: 70vh;
+
   border: 2px solid #ddd;
-  border-radius: 8px;
+  border-radius: 10px;
   object-fit: contain;
 }
 
-/* Submit button styling */
+/* =========================================
+   Submit Button
+========================================= */
 #submit-floor-plan {
-  padding: 10px 20px;
+  padding: 14px 22px;
+  margin: 10px 0 20px 0;
+
   background-color: #4caf50;
   color: white;
+
   border: none;
-  border-radius: 6px;
+  border-radius: 8px;
+  font-size: 18px;
+
   cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
+  transition: background-color 0.2s;
 }
 
 #submit-floor-plan:hover {
   background-color: #45a049;
 }
 
-/* Forms container */
-.space-form {
-  position: relative;
+/* =========================================
+   Popup Forms (Shared)
+========================================= */
+#new-space-form,
+#update-space-form {
+  position: fixed;
+  top: 100px;
+  left: 50%;
+  transform: translateX(-50%);
+
+  width: 340px;
+  max-width: 92vw;
+  max-height: 80vh;
+
+  background: white;
+  border: 2px solid #ccc;
+  border-radius: 12px;
+
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  cursor: grab;
+  z-index: 2000;
+
+  box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.28);
+  /* overflow-y: auto;      /* Scroll form contents on small screens */
+  /* overscroll-behavior: contain; */
 }
 
-/* Ensure forms are hidden until explicitly shown */
+/* Hidden override */
 #new-space-form[hidden],
 #update-space-form[hidden] {
   display: none !important;
 }
 
-/* Common popup form styling */
-#new-space-form,
-#update-space-form {
-  background: white;
-  border: 2px solid #ccc;
-  border-radius: 8px;
-  padding: 20px;
-  width: 320px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-
-  position: fixed; /* <-- use fixed for easier dragging */
-  top: 100px;
-  left: 100px;
-  cursor: grab;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
-  z-index: 1000;
-}
-
-/* Distinguish the update form slightly */
-#update-space-form {
-  right: 40px;
-  top: 55%;
-}
-
-/* Form header label */
+/* Title */
 .form-header {
+  font-size: 20px;
   font-weight: bold;
-  font-size: 18px;
   text-align: center;
-  margin-bottom: 5px;
   color: #333;
 }
 
-/* Close button */
+/* Close buttons */
 #new-space-close-btn,
 #update-space-close-btn {
+  align-self: flex-end;
+
   background: #ff4d4f;
   color: white;
+
   border: none;
-  align-self: flex-end;
   border-radius: 50%;
-  width: 25px;
-  height: 25px;
-  font-weight: bold;
+
+  width: 28px;
+  height: 28px;
+
   cursor: pointer;
+  font-weight: bold;
 }
 
-/* Save/Delete buttons */
+/* Buttons */
 #new-space-save-btn,
 #update-space-save-btn,
 #update-space-delete-btn {
-  padding: 8px 12px;
+  padding: 12px 10px;
   border: none;
-  border-radius: 6px;
-  font-size: 15px;
+  border-radius: 8px;
+
+  font-size: 16px;
   cursor: pointer;
 }
 
+/* Save buttons */
 #new-space-save-btn,
 #update-space-save-btn {
   background-color: #4caf50;
@@ -142,6 +161,7 @@ body {
   background-color: #45a049;
 }
 
+/* Delete button */
 #update-space-delete-btn {
   background-color: #ff4d4f;
   color: white;
@@ -151,19 +171,49 @@ body {
   background-color: #d9363e;
 }
 
+/* Textarea */
 textarea {
   resize: none;
+  padding: 8px;
+  border-radius: 6px;
 }
 
+/* =========================================
+   Special Mobile Tweaks
+========================================= */
+@media (max-width: 600px) {
+  body {
+    padding: 10px;
+  }
+
+  #floor-plan {
+    max-height: 55vh;
+  }
+
+  /* Forms fit the mobile screen better */
+  #new-space-form,
+  #update-space-form {
+    width: 95vw;
+    max-height: 85vh;
+    top: 50px;
+  }
+
+  #submit-floor-plan {
+    width: 95vw;
+    font-size: 17px;
+  }
+}
+
+/* =========================================
+   Safety border so dragged forms don't "disappear"
+========================================= */
 #new-space-form::before,
 #update-space-form::before {
   content: "";
   position: absolute;
-  top: -10px;
-  left: -10px;
-  right: -10px;
-  bottom: -10px;
-  border-radius: 10px;
+  inset: -10px;
+
+  border-radius: 12px;
   background: rgba(0, 0, 0, 0.05);
   z-index: -1;
 }
