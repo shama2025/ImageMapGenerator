@@ -575,19 +575,39 @@ async function blobToBase64(blob) {
 }
 
 async function downloadMobilePorjectFolder(project) {
-  await Filesystem.writeFile({
-    path: `${projectName.value.trim()}.zip`,
-    data: project,
-    directory: Directory.Documents,
-    recursive: true,
-    encoding: Encoding.BASE64,
-  });
+  try {
+    // Write the file to the Documents directory
+    const result = await Filesystem.writeFile({
+      path: `${projectName.value.trim()}.zip`,
+      data: project,
+      directory: Directory.Documents,
+      recursive: true,
+      //encoding: Encoding.base64,
+    });
 
-  // Uncomment if you want to force the user to share via email
-  // Update this so the user has the option to share
-  // Add a button that will only appear after project is saved
-  // await Share.share({
-  //   title: 'Project ZIP',
-  //   url: uri,
-  // })
+    console.log("File saved at:", result.uri);
+
+    // For iOS: Automatically open share dialog so user can save to Files app
+    if (deviceType === "Mobile") {
+      await Share.share({
+        title: `${projectName.value.trim()}.zip`,
+        text: "Export your floor plan project",
+        url: result.uri,
+        dialogTitle: "Save or Share Project",
+      });
+    }
+
+    return result;
+  } catch (error) {
+    console.error("Error saving file:", error);
+    alert("Failed to save project: " + error.message);
+  }
 }
+
+// Uncomment if you want to force the user to share via email
+// Update this so the user has the option to share
+// Add a button that will only appear after project is saved
+// await Share.share({
+//   title: 'Project ZIP',
+//   url: uri,
+// })
