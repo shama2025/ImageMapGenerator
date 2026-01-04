@@ -93,6 +93,7 @@ Manual testing is currently required before submitting changes.
 - Mobile-specific code related to Capacitor
 - Differences between web and mobile behavior
 - How the annotation object is saved
+- Due to mobile security restrictions, the app requires a local server to access the files [Android App](https://play.google.com/store/apps/details?id=com.phlox.simpleserver&hl=en_US&pli=1) since I do not have an IPhone I could not find an app that can run a local host without internet
 
 ---
 
