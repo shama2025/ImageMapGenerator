@@ -3,13 +3,15 @@
 ========================================= */
 * {
   box-sizing: border-box;
-  font-family: Arial, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica", "Arial",
+    sans-serif;
 }
 
 body {
   margin: 0;
-  padding: 15px;
-  background-color: #f5f6fa;
+  padding: 20px;
+  background-color: #fafafa;
 
   display: flex;
   flex-direction: column;
@@ -25,14 +27,22 @@ body {
 ========================================= */
 #dir-name,
 #image-input {
-  margin: 10px 0;
-  padding: 12px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
+  margin: 8px 0;
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
 
-  font-size: 16px;
+  font-size: 14px;
   width: 260px;
   max-width: 90%;
+  background-color: white;
+  transition: border-color 0.2s ease;
+}
+
+#dir-name:focus,
+#image-input:focus {
+  outline: none;
+  border-color: #1a1a1a;
 }
 
 #image-input {
@@ -47,8 +57,8 @@ body {
   max-width: 98vw;
   max-height: 70vh;
 
-  border: 2px solid #ddd;
-  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 2px;
   object-fit: contain;
 }
 
@@ -56,22 +66,25 @@ body {
    Submit Button
 ========================================= */
 #submit-floor-plan {
-  padding: 14px 22px;
-  margin: 10px 0 20px 0;
+  padding: 10px 20px;
+  margin: 12px 0 20px 0;
 
-  background-color: #4caf50;
-  color: white;
+  background-color: white;
+  color: #1a1a1a;
 
-  border: none;
-  border-radius: 8px;
-  font-size: 18px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
 
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s ease;
 }
 
 #submit-floor-plan:hover {
-  background-color: #45a049;
+  background-color: #1a1a1a;
+  color: white;
+  border-color: #1a1a1a;
 }
 
 /* =========================================
@@ -89,10 +102,10 @@ body {
   max-height: 80vh;
 
   background: white;
-  border: 2px solid #ccc;
-  border-radius: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
 
-  padding: 18px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -100,9 +113,7 @@ body {
   cursor: grab;
   z-index: 2000;
 
-  box-shadow: 0px 6px 16px rgba(0, 0, 0, 0.28);
-  /* overflow-y: auto;      /* Scroll form contents on small screens */
-  /* overscroll-behavior: contain; */
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
 /* Hidden override */
@@ -113,10 +124,11 @@ body {
 
 /* Title */
 .form-header {
-  font-size: 20px;
-  font-weight: bold;
+  font-size: 16px;
+  font-weight: 500;
   text-align: center;
-  color: #333;
+  color: #1a1a1a;
+  letter-spacing: -0.3px;
 }
 
 /* Close buttons */
@@ -124,58 +136,126 @@ body {
 #update-space-close-btn {
   align-self: flex-end;
 
-  background: #ff4d4f;
-  color: white;
+  background: white;
+  color: #1a1a1a;
 
-  border: none;
-  border-radius: 50%;
+  border: 1px solid #e0e0e0;
+  border-radius: 2px;
 
   width: 28px;
   height: 28px;
 
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 400;
+  font-size: 16px;
+  transition: all 0.2s ease;
+}
+
+#new-space-close-btn:hover,
+#update-space-close-btn:hover {
+  background-color: #fafafa;
+  border-color: #1a1a1a;
+}
+
+/* Form inputs */
+#new-space-name,
+#update-space-name,
+#new-space-desc,
+#update-space-desc {
+  padding: 10px 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 14px;
+  background-color: #fafafa;
+  transition: border-color 0.2s ease;
+}
+
+#new-space-name:focus,
+#update-space-name:focus,
+#new-space-desc:focus,
+#update-space-desc:focus {
+  outline: none;
+  border-color: #1a1a1a;
+  background-color: white;
+}
+
+/* Color picker */
+#new-space-color,
+#update-space-color {
+  height: 40px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* File inputs */
+#new-space-files,
+#update-space-files {
+  font-size: 13px;
+  padding: 8px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  background-color: #fafafa;
+  cursor: pointer;
 }
 
 /* Buttons */
 #new-space-save-btn,
 #update-space-save-btn,
 #update-space-delete-btn {
-  padding: 12px 10px;
-  border: none;
-  border-radius: 8px;
+  padding: 10px 16px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
 
-  font-size: 16px;
+  font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 /* Save buttons */
 #new-space-save-btn,
 #update-space-save-btn {
-  background-color: #4caf50;
-  color: white;
+  background-color: white;
+  color: #1a1a1a;
 }
 
 #new-space-save-btn:hover,
 #update-space-save-btn:hover {
-  background-color: #45a049;
+  background-color: #1a1a1a;
+  color: white;
+  border-color: #1a1a1a;
 }
 
 /* Delete button */
 #update-space-delete-btn {
-  background-color: #ff4d4f;
-  color: white;
+  background-color: white;
+  color: #1a1a1a;
 }
 
 #update-space-delete-btn:hover {
-  background-color: #d9363e;
+  background-color: #1a1a1a;
+  color: white;
+  border-color: #1a1a1a;
 }
 
 /* Textarea */
 textarea {
-  resize: none;
+  resize: vertical;
+  padding: 10px 12px;
+  border-radius: 4px;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+/* Current files list */
+#current-files-list {
+  font-size: 13px;
+  color: #666;
   padding: 8px;
-  border-radius: 6px;
+  background-color: #fafafa;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
 }
 
 /* =========================================
@@ -183,7 +263,7 @@ textarea {
 ========================================= */
 @media (max-width: 600px) {
   body {
-    padding: 10px;
+    padding: 12px;
   }
 
   #floor-plan {
@@ -200,20 +280,14 @@ textarea {
 
   #submit-floor-plan {
     width: 95vw;
-    font-size: 17px;
+    font-size: 14px;
   }
 }
 
 /* =========================================
-   Safety border so dragged forms don't "disappear"
+   Remove decorative border - keep minimal
 ========================================= */
 #new-space-form::before,
 #update-space-form::before {
-  content: "";
-  position: absolute;
-  inset: -10px;
-
-  border-radius: 12px;
-  background: rgba(0, 0, 0, 0.05);
-  z-index: -1;
+  display: none;
 }

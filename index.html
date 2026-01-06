@@ -27,6 +27,7 @@
           placeholder="Add any notes here..."
           name="desc"
         ></textarea>
+        <input type="color" id="new-space-color" name="color" />
         <!-- Accept multiple image files (can change this if need be) -->
         <input type="file" multiple id="new-space-files" name="files" />
         <button id="new-space-save-btn" type="button">Save!</button>
@@ -48,14 +49,9 @@
           placeholder="Add any notes here..."
           name="desc"
         ></textarea>
-        <!-- Accept multiple image files (can change this if need be) -->
-        <input
-          type="file"
-          accept="image/jpeg, image/png"
-          multiple
-          id="update-space-files"
-          name="files"
-        />
+        <input type="color" id="update-space-color" name="color" />
+        <!-- Accept multiple types of files, browser will handle display -->
+        <input type="file" multiple id="update-space-files" name="files" />
         <div id="current-files-list">
           <!-- Dynamic list of files will appear here -->
         </div>
