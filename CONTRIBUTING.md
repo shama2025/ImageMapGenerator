@@ -26,6 +26,8 @@ The setup steps are also listed here for convenience.
 - Node.js (see `.nvmrc` if present)
 - npm
 - (Optional) `make`
+- Android Studio (Compatible with Mac and Windows)
+- XCode (Compatible with Mac only)
 
 ### Installation
 
@@ -47,6 +49,26 @@ The Makefile contains helper commands for syncing changes with the mobile (Capac
 If you do not have make installed, you can review the commands directly in the Makefile.
 
 ---
+
+### Mobile Setup
+
+```bash
+# Assuming you already cloned it
+
+make sync
+
+#Android
+make build-android
+
+#iOS
+make build-ios
+
+#Open up the respective ide and run
+
+# Refer to documentation for each ide
+# Android Studio: https://developer.android.com/studio/run/device
+# XCode: https://developer.apple.com/documentation/xcode/running-your-app-in-simulator-or-on-a-device
+```
 
 ## How to Make Changes
 
