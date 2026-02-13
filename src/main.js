@@ -29,7 +29,9 @@ const updateSpaceFormFilesInput = document.getElementById("update-space-files");
 const newSpaceFormSaveButton = document.getElementById("new-space-save-btn");
 const projectName = document.getElementById("dir-name");
 const submitProject = document.getElementById("submit-floor-plan");
-
+const plusBtn = document.getElementById("plus-btn");
+const minusBtn = document.getElementById("minus-btn");
+const btnContainer = document.getElementById("btn-container");
 // =============================================================================
 // STATE VARIABLES
 // =============================================================================
@@ -60,6 +62,11 @@ let isDragging = false;
 
 // Device detection
 let deviceType = "";
+
+// Array of Images
+let images = [];
+// Image Navigation
+let count = 0;
 
 // =============================================================================
 // ANNOTORIOUS SETUP
@@ -259,26 +266,36 @@ document.addEventListener("mouseup", () => {
 // =============================================================================
 
 imageInput.addEventListener("change", function (event) {
-  const file = event.target.files[0];
+  // const file = event.target.files[0];
 
-  if (file) {
-    const reader = new FileReader();
+  // if (file) {
+  //   const reader = new FileReader();
 
-    reader.onload = function (e) {
-      image.alt = `Floor Plan: ${file.name}`;
-      image.src = e.target.result;
-      imageDataURL = e.target.result;
-      imageName = file.name;
+  //   reader.onload = function (e) {
+  //     image.alt = `Floor Plan: ${file.name}`;
+  //     image.src = e.target.result;
+  //     imageDataURL = e.target.result;
+  //     imageName = file.name;
 
-      // Store natural dimensions once image loads
-      image.onload = () => {
-        imageNaturalWidth = image.naturalWidth;
-        imageNaturalHeight = image.naturalHeight;
-      };
-    };
+  //     // Store natural dimensions once image loads
+  //     image.onload = () => {
+  //       imageNaturalWidth = image.naturalWidth;
+  //       imageNaturalHeight = image.naturalHeight;
+  //     };
+  //   };
 
-    reader.readAsDataURL(file);
+  //   reader.readAsDataURL(file);
+  // }
+  images = [...event.target.files]; // convert FileList to array
+  count = 0;
+
+  if (images.length > 1) {
+    btnContainer.hidden = false;
+  } else {
+    btnContainer.hidden = true;
   }
+
+  showImage();
 });
 
 // =============================================================================
@@ -301,6 +318,24 @@ submitProject.addEventListener("click", async (event) => {
   } else {
     // Direct download for desktop
     downloadProjectFolder(zipBlob, `${projectName.value.trim()}.zip`);
+  }
+});
+
+// =============================================================================
+// IMAGE LIST NAVIGATION
+// =============================================================================
+
+plusBtn.addEventListener("click", () => {
+  if (count < images.length - 1) {
+    count++;
+    showImage();
+  }
+});
+
+minusBtn.addEventListener("click", () => {
+  if (count > 0) {
+    count--;
+    showImage();
   }
 });
 
@@ -958,4 +993,23 @@ async function downloadMobileProjectFolder(project) {
     console.error("Error saving file:", error);
     alert("Failed to save project: " + error.message);
   }
+}
+
+/**
+ * Displays the next image in the images array
+ */
+function showImage() {
+  console.log(images);
+  if (!images.length) return;
+
+  image.innerHTML = ""; // clear current image
+
+  const img = document.createElement("img");
+  img.src = URL.createObjectURL(images[count]);
+  img.style.width = "100%";
+  img.style.height = "100%";
+  img.style.objectFit = "contain";
+  img.alt = `Floor Plan: ${images[count].name}`;
+
+  image.appendChild(img);
 }

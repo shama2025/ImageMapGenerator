@@ -291,3 +291,78 @@ textarea {
 #update-space-form::before {
   display: none;
 }
+
+/* =========================================
+   Image Navigation Buttons
+========================================= */
+#btn-container {
+  display: flex;
+  gap: 12px;
+  margin: 16px 0;
+  justify-content: center;
+  align-items: center;
+}
+
+#minus-btn,
+#plus-btn {
+  padding: 10px 20px;
+  background-color: white;
+  color: #1a1a1a;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  font-size: 18px;
+  font-weight: 400;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 50px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#minus-btn:hover,
+#plus-btn:hover {
+  background-color: #1a1a1a;
+  color: white;
+  border-color: #1a1a1a;
+}
+
+#minus-btn:active,
+#plus-btn:active {
+  transform: scale(0.98);
+}
+
+/* Disabled state */
+#minus-btn:disabled,
+#plus-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background-color: #fafafa;
+}
+
+#minus-btn:disabled:hover,
+#plus-btn:disabled:hover {
+  background-color: #fafafa;
+  color: #1a1a1a;
+  border-color: #e0e0e0;
+}
+
+/* Mobile adjustments */
+@media (max-width: 600px) {
+  #btn-container {
+    gap: 8px;
+    margin: 12px 0;
+  }
+
+  #minus-btn,
+  #plus-btn {
+    min-width: 45px;
+    height: 38px;
+    font-size: 16px;
+  }
+}
+
+#btn-container[hidden] {
+  display: none;
+}
