@@ -40,7 +40,7 @@ const btnContainer = document.getElementById("btn-container");
 const anno = createImageAnnotator(image);
 
 // Array to store all floor space annotations
-let floorSpaces = [];
+let floorSpaces = new Map();
 
 // Current annotation being created/edited
 let annotationID = 0;
@@ -94,7 +94,10 @@ window.addEventListener("DOMContentLoaded", () => {
   // Event handler when an existing annotation is updated
   anno.on("updateAnnotation", (annotation) => {
     currentAnnotation = annotation.id;
-    const currentFloorSpace = findFloorPlan(currentAnnotation);
+    // const currentFloorSpace = findFloorPlan(currentAnnotation);
+    const currentImage = getCurrentImageName();
+    const currentFloorSpace = floorSpaces.get(currentImage);
+
     currentCoordinates = currentFloorSpace.coordinates;
 
     // Store new coordinates
@@ -163,22 +166,25 @@ updateSpaceFormSaveButton.addEventListener("click", async (event) => {
   }
 
   const data = new FormData(updateSpaceForm);
-  const index = floorSpaces.findIndex((f) => f.id === currentAnnotation);
+  //const index = floorSpaces.findIndex((f) => f.id === currentAnnotation);
   const files = data.getAll("files");
+  const currentFloorSpace = getCurrentImageName();
 
-  if (index !== -1) {
-    floorSpaces[index] = {
-      ...floorSpaces[index],
-      name: data.get("name"),
-      desc: data.get("desc"),
-      files,
-      coordinates: coordinatesAreEqual(newCoordinates, currentCoordinates)
-        ? currentCoordinates
-        : newCoordinates,
-      fileNames: files.map((f) => f.name),
-      color: data.get("color"),
-    };
-  }
+  const floorSpace = {
+    id: annotationID,
+    name: data.get("name"),
+    desc: data.get("desc"),
+    files,
+    coordinates: coordinatesAreEqual(newCoordinates, currentCoordinates)
+      ? currentCoordinates
+      : newCoordinates,
+    geometry: "rect",
+    fileNames: files.map((f) => f.name),
+    color: data.get("color"),
+  };
+
+  floorSpaces.set(currentFloorSpace, floorSpace);
+  console.log(floorSpaces);
 
   updateSpaceForm.hidden = true;
 });
@@ -193,6 +199,7 @@ newSpaceFormSaveButton.addEventListener("click", async (event) => {
 
   const data = new FormData(newSpaceForm);
   const files = data.getAll("files");
+  const imageName = getCurrentImageName();
 
   const floorSpace = {
     id: annotationID,
@@ -207,7 +214,8 @@ newSpaceFormSaveButton.addEventListener("click", async (event) => {
 
   // Reset coordinates for next annotation
   annotationCoordinates = { minX: 0, minY: 0, maxX: 0, maxY: 0 };
-  floorSpaces.push(floorSpace);
+  floorSpaces.set(imageName, floorSpace);
+  console.log(floorSpaces);
   newSpaceForm.hidden = true;
 });
 
@@ -1006,10 +1014,17 @@ function showImage() {
 
   const img = document.createElement("img");
   img.src = URL.createObjectURL(images[count]);
-  img.style.width = "100%";
-  img.style.height = "100%";
+  // img.style.width = "100%";
+  // img.style.height = "100%";
   img.style.objectFit = "contain";
   img.alt = `Floor Plan: ${images[count].name}`;
-
+  img.classList.add("image-map");
+  img.id = images[count].name;
   image.appendChild(img);
+}
+
+function getCurrentImageName() {
+  const currentImage = document.querySelector(".image-map");
+  let imageName = currentImage.id;
+  return imageName;
 }
