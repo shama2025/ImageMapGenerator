@@ -1023,6 +1023,10 @@ function showImage() {
   image.appendChild(img);
 }
 
+/**
+ * Searches DOM to get the id of the image
+ * @returns {string} Name of current image
+ */
 function getCurrentImageName() {
   const currentImage = document.querySelector(".image-map");
   let imageName = currentImage.id;

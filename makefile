@@ -15,7 +15,9 @@ build-ios: ./ios
 
 build-android: ./android
 	npx cap open android
+
 copy:
 	npx cap copy
+
 sync:
 	npx cap sync
