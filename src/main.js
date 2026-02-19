@@ -39,7 +39,7 @@ const btnContainer = document.getElementById("btn-container");
 // Annotorious instance for image annotation
 const anno = createImageAnnotator(image);
 
-// Array to store all floor space annotations
+// Map to store all floor space annotations
 let floorSpaces = new Map();
 
 // Current annotation being created/edited
@@ -67,6 +67,8 @@ let deviceType = "";
 let images = [];
 // Image Navigation
 let count = 0;
+// Map of each images annotations
+let imageAnnotations = new Map();
 
 // =============================================================================
 // ANNOTORIOUS SETUP
@@ -334,17 +336,43 @@ submitProject.addEventListener("click", async (event) => {
 // =============================================================================
 
 plusBtn.addEventListener("click", () => {
+  const annotations = anno.getAnnotations();
+  // Currently checks all annotations. Needs to check the map and
+  // imageAnnotations.get(image name).length
+  // Also needs to check the annotations object for the image name
+  // Ultimatly need to find a better way to get image map data
   if (count < images.length - 1) {
+    if (annotations.length > 0) {
+      imageAnnotations.set(getCurrentImageName(), annotations);
+    }
     count++;
+    anno.clearAnnotations();
     showImage();
+    console.log("Image Annotations: ", imageAnnotations);
+    console.log("CurrentImage: ", getCurrentImageName());
+    if (imageAnnotations.get(getCurrentImageName()) != null) {
+      anno.setAnnotations(imageAnnotations.get(getCurrentImageName()));
+    }
   }
+  console.log("Annotations Map + BTN: ", imageAnnotations);
 });
 
 minusBtn.addEventListener("click", () => {
+  const annotations = anno.getAnnotations();
   if (count > 0) {
+    if (annotations.length > 0) {
+      imageAnnotations.set(getCurrentImageName(), annotations);
+    }
     count--;
+    anno.clearAnnotations();
     showImage();
+    console.log("Image Annotations: ", imageAnnotations);
+    console.log("CurrentImage: ", getCurrentImageName());
+    if (imageAnnotations.get(getCurrentImageName()) != null) {
+      anno.setAnnotations(imageAnnotations.get(getCurrentImageName()));
+    }
   }
+  console.log("Annotations Map - BTN: ", imageAnnotations);
 });
 
 // =============================================================================
