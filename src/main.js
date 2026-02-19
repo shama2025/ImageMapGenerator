@@ -37,7 +37,9 @@ const btnContainer = document.getElementById("btn-container");
 // =============================================================================
 
 // Annotorious instance for image annotation
-const anno = createImageAnnotator(image);
+const anno = createImageAnnotator(image, {
+  userSelectAction: "EDIT",
+});
 
 // Map to store all floor space annotations
 let floorSpaces = new Map();
