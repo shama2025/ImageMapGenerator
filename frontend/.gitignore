@@ -1,0 +1,10 @@
+ .DS_Store
+/frontend/dist
+/frontend/node_modules
+/frontend/public
+/frontend/android
+/frontend/tmp.html
+/frontend/tmp.js
+/frontend/ios
+/frontend/licenses
+/backend/venv
